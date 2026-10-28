@@ -8,7 +8,8 @@ import { botonPrincipal, mensajeError, mensajeExito } from "@/shared/ui/estilos"
 import { useFormulario } from "@/shared/ui/useFormulario";
 import { propuestaResto } from "../dominio/edicion";
 import { interpretarToneladas } from "../dominio/toneladas";
-import { editarDatosGenerales, editarToneladas, editarTramo, type EstadoEdicion } from "../edicion-acciones";
+import { aDiaHora } from "@/shared/lib/fechas";
+import { agregarTramo, editarDatosGenerales, editarToneladas, editarTramo, quitarTramo, type EstadoEdicion } from "../edicion-acciones";
 import { SelectorBomba } from "./SelectorBomba";
 
 type DiaHora = { dia: string; hora: string };
@@ -70,6 +71,7 @@ export function EdicionDescarga(props: Props) {
         {props.descarga.tramos.map((t, i) => (
           <Tramo key={t.id} {...props} tramo={t} numero={i + 1} />
         ))}
+        <AgregarTramo {...props} />
       </section>
       {props.puedeAsignarToneladas && props.descarga.estado === "FINALIZADA" && <Toneladas {...props} />}
     </div>
@@ -126,22 +128,92 @@ function Tramo({ descarga: d, tramo: t, numero, ...p }: Props & { tramo: Descarg
   // Para un tramo cerrado, "en uso ahora" no importa: el servidor revisa el horario elegido.
   const ocupadas = t.fin ? {} : p.ocupadas;
   return (
-    <form onSubmit={alEnviar} className={tarjeta}>
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold">Tramo {numero}</h3>
-        {!t.fin && <span className="font-semibold text-green-700">en curso</span>}
+    <div className={tarjeta}>
+      <form onSubmit={alEnviar} className="flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold">Tramo {numero}</h3>
+          {!t.fin && <span className="font-semibold text-green-700">en curso</span>}
+        </div>
+        <input type="hidden" name="descargaId" value={d.id} />
+        <input type="hidden" name="tramoId" value={t.id} />
+        <SelectorBomba bombas={p.bombas} ocupadas={ocupadas} inicial={String(t.bombaId)} />
+        <Campo etiqueta="Operario">
+          <Desplegable nombre="operarioId" defecto={String(t.operarioId)} opciones={opciones(p.operarios)} />
+        </Campo>
+        <DiaHora etiqueta="Inicio" prefijo="inicio" dia={t.inicio.dia} hora={t.inicio.hora} />
+        {t.fin && <DiaHora etiqueta="Fin" prefijo="fin" dia={t.fin.dia} hora={t.fin.hora} />}
+        <Mensajes estado={estado} />
+        <button type="submit" className={botonPrincipal} disabled={enviando}>
+          {enviando ? "Guardando…" : `Guardar tramo ${numero}`}
+        </button>
+      </form>
+      {d.tramos.length > 1 && <QuitarTramo descargaId={d.id} tramoId={t.id} numero={numero} enCurso={!t.fin} />}
+    </div>
+  );
+}
+
+/** Quitar en dos pasos, para no borrar por un toque sin querer. */
+function QuitarTramo({ descargaId, tramoId, numero, enCurso }: { descargaId: number; tramoId: number; numero: number; enCurso: boolean }) {
+  const { estado, enviar: enviarDatos, enviando } = useFormulario<EstadoEdicion>(quitarTramo, {});
+  const [confirmando, setConfirmando] = useState(false);
+  const enviar = () => {
+    const datos = new FormData();
+    datos.set("descargaId", String(descargaId));
+    datos.set("tramoId", String(tramoId));
+    enviarDatos(datos);
+  };
+  if (!confirmando) {
+    return (
+      <button type="button" className="min-h-11 self-start px-1 font-semibold text-red-700" onClick={() => setConfirmando(true)}>
+        Quitar tramo {numero}
+      </button>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border-2 border-red-300 bg-red-50 p-3">
+      <p className="text-red-900">
+        ¿Quitar el tramo {numero}? Usalo solo si se cargó por error. Queda registrado quién lo quitó.
+        {enCurso && " La descarga va a quedar pausada."}
+      </p>
+      <div className="flex gap-2">
+        <button type="button" disabled={enviando} onClick={enviar} className="min-h-11 rounded-lg bg-red-700 px-4 font-semibold text-white hover:bg-red-800">
+          {enviando ? "Quitando…" : "Sí, quitar"}
+        </button>
+        <button type="button" disabled={enviando} onClick={() => setConfirmando(false)} className="min-h-11 rounded-lg px-4 font-semibold">
+          No
+        </button>
       </div>
+      <Mensajes estado={estado} />
+    </div>
+  );
+}
+
+function AgregarTramo({ descarga: d, ...p }: Props) {
+  const { estado, alEnviar, enviando } = useFormulario<EstadoEdicion>(agregarTramo, {});
+  const [abierto, setAbierto] = useState(false);
+  const [hoy] = useState(() => aDiaHora(new Date()).dia);
+  if (!abierto) {
+    return (
+      <button type="button" className="min-h-12 rounded-xl border-2 border-dashed border-slate-300 font-semibold text-blue-700 hover:bg-blue-50" onClick={() => setAbierto(true)}>
+        + Agregar un tramo que faltó cargar
+      </button>
+    );
+  }
+  return (
+    // La key vacía el formulario después de agregar.
+    <form key={estado.exito} onSubmit={alEnviar} className={tarjeta}>
+      <h3 className="text-lg font-bold">Agregar tramo</h3>
+      <p className="text-sm text-slate-600">Para un bombeo que ya terminó y no se registró. Para seguir bombeando ahora, usá Reanudar.</p>
       <input type="hidden" name="descargaId" value={d.id} />
-      <input type="hidden" name="tramoId" value={t.id} />
-      <SelectorBomba bombas={p.bombas} ocupadas={ocupadas} inicial={String(t.bombaId)} />
+      <SelectorBomba bombas={p.bombas} ocupadas={{}} />
       <Campo etiqueta="Operario">
-        <Desplegable nombre="operarioId" defecto={String(t.operarioId)} opciones={opciones(p.operarios)} />
+        <Desplegable nombre="operarioId" opciones={opciones(p.operarios)} />
       </Campo>
-      <DiaHora etiqueta="Inicio" prefijo="inicio" dia={t.inicio.dia} hora={t.inicio.hora} />
-      {t.fin && <DiaHora etiqueta="Fin" prefijo="fin" dia={t.fin.dia} hora={t.fin.hora} />}
+      <DiaHora etiqueta="Inicio" prefijo="inicio" dia={hoy} hora="" />
+      <DiaHora etiqueta="Fin" prefijo="fin" dia={hoy} hora="" />
       <Mensajes estado={estado} />
       <button type="submit" className={botonPrincipal} disabled={enviando}>
-        {enviando ? "Guardando…" : `Guardar tramo ${numero}`}
+        {enviando ? "Guardando…" : "Agregar tramo"}
       </button>
     </form>
   );

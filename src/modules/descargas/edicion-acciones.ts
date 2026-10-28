@@ -6,10 +6,10 @@ import { registrarAuditoria } from "@/shared/auditoria/registrar";
 import { puede, type Perfil } from "@/shared/auth/perfiles";
 import { exigirPermiso } from "@/shared/auth/sesion";
 import { db } from "@/shared/lib/db";
-import { errorEnAsignacion, errorEnTramos, usaVariasBombas } from "./dominio/edicion";
+import { efectoDeQuitar, errorEnAsignacion, errorEnTramos, usaVariasBombas } from "./dominio/edicion";
 import { normalizarHojaDeRuta, normalizarPatente } from "./dominio/reglas";
 import { interpretarToneladas } from "./dominio/toneladas";
-import { esquemaEditarDatos, esquemaEditarTramo } from "./esquemas";
+import { esquemaAgregarTramo, esquemaEditarDatos, esquemaEditarTramo } from "./esquemas";
 import { ErrorNegocio, exigirActivos, exigirBombaLibre, instante, leer, mensajeDeError } from "./servidor";
 
 // Edición de registros (Etapa 5). El Colaborador edita mientras la descarga no
@@ -135,8 +135,8 @@ export async function editarTramo(_previo: EstadoEdicion, formulario: FormData):
         entidad: "TramoBombeo",
         entidadId: tramo.id,
         accion: "EDITAR",
-        antes: Object.fromEntries(Object.keys(diferencias).map((k) => [k, previos[k as keyof typeof previos]])),
-        despues: diferencias,
+        antes: { descargaId: descarga.id, ...Object.fromEntries(Object.keys(diferencias).map((k) => [k, previos[k as keyof typeof previos]])) },
+        despues: { descargaId: descarga.id, ...diferencias },
       });
     });
   } catch (error) {
@@ -144,6 +144,101 @@ export async function editarTramo(_previo: EstadoEdicion, formulario: FormData):
   }
   refrescar(id);
   return { exito: "Tramo guardado." };
+}
+
+const fotoTramo = (t: { bombaId: number; operarioId: number; inicio: Date; fin: Date | null; toneladas?: { toString(): string } | null }, descargaId: number) => ({
+  descargaId,
+  bombaId: t.bombaId,
+  operarioId: t.operarioId,
+  inicio: t.inicio.toISOString(),
+  fin: t.fin?.toISOString() ?? null,
+  toneladas: t.toneladas?.toString() ?? null,
+});
+
+/** Agrega un tramo cerrado que faltó cargar (por ejemplo, olvidaron reanudar en la app). */
+export async function agregarTramo(_previo: EstadoEdicion, formulario: FormData): Promise<EstadoEdicion> {
+  const { perfil } = await exigirPermiso("descargas.operar");
+  let id = 0;
+  try {
+    const datos = leer(esquemaAgregarTramo, formulario);
+    id = datos.descargaId;
+    const inicio = instante(datos.inicioDia, datos.inicioHora);
+    const fin = instante(datos.finDia, datos.finHora);
+
+    await db.$transaction(async (tx) => {
+      const descarga = await leerEditable(tx, datos.descargaId, perfil);
+      const error = errorEnTramos([...descarga.tramos, { id: 0, inicio, fin }], new Date());
+      if (error) throw new ErrorNegocio(error);
+      await exigirActivos(tx, { bombaId: datos.bombaId, operarioId: datos.operarioId });
+      await exigirBombaLibre(tx, datos.bombaId, inicio, fin, descarga.id);
+      const nuevo = await tx.tramoBombeo.create({
+        data: { descargaId: descarga.id, bombaId: datos.bombaId, operarioId: datos.operarioId, inicio, fin },
+      });
+      await registrarAuditoria(tx, {
+        perfil,
+        entidad: "TramoBombeo",
+        entidadId: nuevo.id,
+        accion: "CREAR",
+        despues: fotoTramo(nuevo, descarga.id),
+      });
+    });
+  } catch (error) {
+    return { error: mensajeDeError(error) };
+  }
+  refrescar(id);
+  return { exito: "Tramo agregado." };
+}
+
+/** Quita un tramo cargado por error. Queda en la auditoría con todos sus datos. */
+export async function quitarTramo(_previo: EstadoEdicion, formulario: FormData): Promise<EstadoEdicion> {
+  const { perfil } = await exigirPermiso("descargas.operar");
+  const id = Number(formulario.get("descargaId"));
+  const tramoId = Number(formulario.get("tramoId"));
+  try {
+    await db.$transaction(async (tx) => {
+      const descarga = await leerEditable(tx, id, perfil);
+      const efecto = efectoDeQuitar(descarga.estado, descarga.tramos, tramoId);
+      if (!efecto.ok) throw new ErrorNegocio(efecto.error);
+      const tramo = descarga.tramos.find((t) => t.id === tramoId)!;
+
+      await tx.tramoBombeo.delete({ where: { id: tramoId } });
+      await registrarAuditoria(tx, {
+        perfil,
+        entidad: "TramoBombeo",
+        entidadId: tramoId,
+        accion: "ELIMINAR",
+        antes: fotoTramo(tramo, descarga.id),
+      });
+
+      if (efecto.nuevoEstado !== descarga.estado) {
+        await tx.descarga.update({ where: { id }, data: { estado: efecto.nuevoEstado } });
+        await registrarAuditoria(tx, {
+          perfil,
+          entidad: "Descarga",
+          entidadId: id,
+          accion: "EDITAR",
+          antes: { estado: descarga.estado },
+          despues: { estado: efecto.nuevoEstado },
+        });
+      }
+      const conAsignacion = descarga.tramos.filter((t) => t.id !== tramoId && t.toneladas !== null);
+      if (efecto.limpiarAsignaciones && conAsignacion.length > 0) {
+        await tx.tramoBombeo.updateMany({ where: { descargaId: id }, data: { toneladas: null } });
+        await registrarAuditoria(tx, {
+          perfil,
+          entidad: "Descarga",
+          entidadId: id,
+          accion: "EDITAR",
+          antes: { tramos: conAsignacion.map((t) => ({ id: t.id, toneladas: t.toneladas!.toString() })) },
+          despues: { tramos: conAsignacion.map((t) => ({ id: t.id, toneladas: null })) },
+        });
+      }
+    });
+  } catch (error) {
+    return { error: mensajeDeError(error) };
+  }
+  refrescar(id);
+  return { exito: "Tramo quitado." };
 }
 
 /**

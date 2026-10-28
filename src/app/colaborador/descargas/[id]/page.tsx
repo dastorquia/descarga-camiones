@@ -59,6 +59,11 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
             {descarga.estado === "FINALIZADA" ? "Corregir datos" : "Editar datos"}
           </Link>
         )}
+        {puede(sesion.perfil, "auditoria.ver") && (
+          <Link href={`/supervisor/auditoria?descargaId=${descarga.id}`} className="self-start font-semibold text-blue-700 hover:underline">
+            Ver cambios de esta descarga
+          </Link>
+        )}
 
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-xl border-2 border-slate-200 bg-white p-4">
           <Dato nombre="Patente">{descarga.patente ?? "—"}</Dato>

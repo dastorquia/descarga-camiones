@@ -1,5 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { aKilos, desdeKilos, errorEnAsignacion, errorEnTramos, propuestaResto, usaVariasBombas } from "./edicion";
+import { aKilos, desdeKilos, efectoDeQuitar, errorEnAsignacion, errorEnTramos, propuestaResto, usaVariasBombas } from "./edicion";
+
+describe("quitar un tramo cargado por error", () => {
+  const t = (id: number, bombaId: number, fin: Date | null) => ({ id, bombaId, inicio: new Date(`2026-10-0${id}T10:00:00Z`), fin });
+  const cerrado = new Date("2026-10-09T00:00:00Z");
+
+  it("no deja una descarga sin tramos", () => {
+    expect(efectoDeQuitar("PAUSADA", [t(1, 1, cerrado)], 1)).toEqual({ ok: false, error: expect.stringContaining("al menos un tramo") });
+  });
+
+  it("quitar el tramo en curso deja la descarga pausada", () => {
+    expect(efectoDeQuitar("EN_CURSO", [t(1, 1, cerrado), t(2, 1, null)], 2)).toEqual({ ok: true, nuevoEstado: "PAUSADA", limpiarAsignaciones: true });
+  });
+
+  it("quitar un tramo cerrado no cambia el estado", () => {
+    expect(efectoDeQuitar("FINALIZADA", [t(1, 1, cerrado), t(2, 2, cerrado), t(3, 2, cerrado)], 3)).toEqual({
+      ok: true,
+      nuevoEstado: "FINALIZADA",
+      limpiarAsignaciones: false,
+    });
+  });
+
+  it("si queda una sola bomba, se borran las toneladas por tramo", () => {
+    expect(efectoDeQuitar("FINALIZADA", [t(1, 1, cerrado), t(2, 2, cerrado)], 2)).toMatchObject({ limpiarAsignaciones: true });
+  });
+
+  it("rechaza un tramo de otra descarga", () => {
+    expect(efectoDeQuitar("PAUSADA", [t(1, 1, cerrado), t(2, 1, cerrado)], 9).ok).toBe(false);
+  });
+});
 
 const h = (hora: string, dia = "01") => new Date(`2026-10-${dia}T${hora}:00Z`);
 const ahora = h("12:00", "05");

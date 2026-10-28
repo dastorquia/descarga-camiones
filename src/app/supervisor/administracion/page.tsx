@@ -23,6 +23,9 @@ export default async function Administracion() {
       <Link href="/supervisor/cambiar-pin" className={botonSecundario}>
         Cambiar PIN
       </Link>
+      <Link href="/supervisor/auditoria" className={botonSecundario}>
+        Registro de cambios
+      </Link>
     </main>
   );
 }

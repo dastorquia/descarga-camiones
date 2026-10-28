@@ -308,6 +308,10 @@ Estas decisiones precisan o corrigen las secciones anteriores. Ante una contradi
 - **Patente obligatoria** (corrige las secciones 4 y 12): solo letras y números, en mayúsculas. La columna sigue admitiendo vacío en la base, pero la app la exige.
 - **Bomba en desplegables y listas:** "D1-BCI010". Al elegirla se muestra en negrita "Descarga 1 · Bomba BCI010".
 - **Finalizar una descarga pausada:** se permite; pide solo las toneladas.
+- **Quitar y agregar tramos** (pedido el 28/10/2026, mismos permisos que la edición):
+  - Quitar: para tramos cargados por error. Pide confirmación y la descarga tiene que quedar con al menos un tramo. Si se quita el tramo en curso, la descarga queda pausada. Si después queda una sola bomba, se borran las toneladas asignadas por tramo. Todo queda en la auditoría como "Eliminación", con los datos del tramo.
+  - Agregar: solo tramos ya terminados (con inicio y fin), con las mismas reglas de horarios y bombas. Para seguir bombeando se usa "Reanudar".
+- **Registro de cambios** (pedido el 28/10/2026, solo Supervisor): pantalla que muestra la auditoría con nombres y fechas legibles, filtros por tipo de dato, acción y fechas, y el historial de cambios de cada descarga desde su detalle.
 - **Inicio del Colaborador = tablero por sector:** una tarjeta por sector (Descarga 1, 2 y 3) con sus camiones, la bomba en uso y hace cuánto bombea (solo para mostrar, nunca para estadísticas). Cada sector tiene "+ Agregar", que ofrece sus bombas. Debajo, las "Finalizadas hoy". Se actualiza solo cada 30 segundos.
 - **Sector de bomba:** se guarda en la descripción de la bomba ("Descarga 1", "Descarga 2" o "Descarga 3"). En pantalla se muestra abreviado (D1, D2 o D3) en letra chica.
 - **Sesión:** la cookie se firma con la variable `SESSION_SECRET`, que va en `.env` además de `DATABASE_URL` y `DIRECT_URL`.

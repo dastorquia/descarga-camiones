@@ -109,7 +109,8 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - Un archivo `"use server"` solo exporta acciones async: las ayudas compartidas van en `src/modules/descargas/servidor.ts`.
   - Edición (`edicion-acciones.ts`): al editar un tramo no cambia si está abierto o cerrado; las reglas están en `dominio/edicion.ts`. Las toneladas por tramo se suman en kilos enteros (`aKilos`).
   - Catálogos: duplicados se comparan sin distinguir mayúsculas (`existeOtro`). Se desactivan, nunca se borran.
-- **Pantallas de la Etapa 5:** `/supervisor/administracion` (catálogos, umbrales, PIN), `/colaborador/descargas/[id]/editar` y `/colaborador/historial` (ambos perfiles; filtros en la dirección).
+- **Pantallas de la Etapa 5:** `/supervisor/administracion` (catálogos, umbrales, PIN), `/colaborador/descargas/[id]/editar` (incluye quitar y agregar tramos) y `/colaborador/historial` (ambos perfiles; filtros en la dirección), y `/supervisor/auditoria` (registro de cambios; `?descargaId=` para una descarga).
+  - Los registros de auditoría de tramos guardan `descargaId` en antes/después, para poder filtrar por descarga aunque el tramo se haya quitado. `describirCambios` (`src/shared/auditoria/describir.ts`) los traduce a texto.
 - **Servidor de desarrollo:** si una acción recién creada falla con "undefined" en el servidor, reiniciar `npm run dev` (Turbopack a veces conserva una versión vieja).
 - **Antes de cada commit:** correr `npm run typecheck`, `npm run lint` y `npm test`.
 

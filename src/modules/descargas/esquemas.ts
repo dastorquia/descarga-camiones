@@ -51,6 +51,17 @@ export const esquemaEditarTramo = z.object({
   finHora: z.union([hora, z.literal("")]).default(""),
 });
 
+/** Tramo agregado a mano: siempre cerrado (para abrir uno nuevo está "Reanudar"). */
+export const esquemaAgregarTramo = z.object({
+  descargaId: id("Descarga inválida."),
+  bombaId: id("Elegí la bomba."),
+  operarioId: id("Elegí el operario."),
+  inicioDia: dia,
+  inicioHora: hora,
+  finDia: dia,
+  finHora: hora,
+});
+
 export const esquemaFinalizar = z.object({
   descargaId: id("Descarga inválida."),
   // Vacíos cuando la descarga ya estaba pausada (no hay tramo para cerrar).

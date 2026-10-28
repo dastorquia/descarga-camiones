@@ -62,6 +62,30 @@ export function propuestaResto(total: string, asignadas: readonly (string | null
   return resto > 0 ? { indice: vacios[0]!, valor: desdeKilos(resto) } : null;
 }
 
+type Estado = "EN_CURSO" | "PAUSADA" | "FINALIZADA";
+type TramoConBomba = TramoEditable & { bombaId: number };
+
+export type EfectoQuitar =
+  | { ok: false; error: string }
+  | { ok: true; nuevoEstado: Estado; limpiarAsignaciones: boolean };
+
+/**
+ * Qué pasa al quitar un tramo cargado por error. Siempre queda al menos uno.
+ * Si se quita el tramo en curso, la descarga queda pausada. Si después queda
+ * una sola bomba, se borran las toneladas asignadas por tramo (ya no aplican).
+ */
+export function efectoDeQuitar(estado: Estado, tramos: readonly TramoConBomba[], tramoId: number): EfectoQuitar {
+  const tramo = tramos.find((t) => t.id === tramoId);
+  if (!tramo) return { ok: false, error: "El tramo no es de esta descarga." };
+  if (tramos.length === 1) return { ok: false, error: "La descarga tiene que tener al menos un tramo." };
+  const restantes = tramos.filter((t) => t.id !== tramoId);
+  return {
+    ok: true,
+    nuevoEstado: tramo.fin === null && estado === "EN_CURSO" ? "PAUSADA" : estado,
+    limpiarAsignaciones: !usaVariasBombas(restantes),
+  };
+}
+
 /** Hay asignación por tramo solo si la descarga usó más de una bomba. */
 export function usaVariasBombas(tramos: readonly { bombaId: number }[]): boolean {
   return new Set(tramos.map((t) => t.bombaId)).size > 1;

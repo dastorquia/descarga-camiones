@@ -23,6 +23,7 @@ export const PERMISOS = {
   "configuracion.administrar": SOLO_SUPERVISOR,
   "pin.cambiar": SOLO_SUPERVISOR,
   "reportes.ver": SOLO_SUPERVISOR,
+  "auditoria.ver": SOLO_SUPERVISOR,
 } as const satisfies Record<string, readonly Perfil[]>;
 
 export type Permiso = keyof typeof PERMISOS;

@@ -11,10 +11,13 @@ export function useFormulario<E>(
   inicial: Awaited<E>,
 ) {
   const [estado, despachar, enviando] = useActionState<E, FormData>(accion, inicial);
-  function alEnviar(evento: FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    const datos = new FormData(evento.currentTarget);
+  /** Envía datos armados a mano (para botones fuera de un formulario). */
+  function enviar(datos: FormData) {
     startTransition(() => despachar(datos));
   }
-  return { estado, alEnviar, enviando };
+  function alEnviar(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    enviar(new FormData(evento.currentTarget));
+  }
+  return { estado, alEnviar, enviar, enviando };
 }
