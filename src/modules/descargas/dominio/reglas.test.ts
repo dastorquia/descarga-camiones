@@ -23,9 +23,15 @@ describe("hoja de ruta", () => {
     }
   });
 
-  it("la patente es opcional y se normaliza", () => {
-    expect(normalizarPatente("  ab 123 cd ")).toBe("AB123CD");
-    expect(normalizarPatente("  ")).toBeNull();
+  it("la patente es obligatoria y se normaliza", () => {
+    expect(normalizarPatente("  ab 123 cd ")).toEqual({ ok: true, valor: "AB123CD" });
+    expect(normalizarPatente("  ").ok).toBe(false);
+  });
+
+  it("la patente rechaza caracteres especiales", () => {
+    for (const texto of ["AB-123-CD", "AB.123", "AB_1", "ÑA123"]) {
+      expect(normalizarPatente(texto).ok, texto).toBe(false);
+    }
   });
 });
 

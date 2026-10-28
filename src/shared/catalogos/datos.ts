@@ -10,7 +10,11 @@ export async function catalogosActivos() {
     db.producto.findMany({ where: { activo: true }, orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
     db.proveedor.findMany({ where: { activo: true }, orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
     db.tanque.findMany({ where: { activo: true }, orderBy: { codigo: "asc" }, select: { id: true, codigo: true } }),
-    db.bomba.findMany({ where: { activa: true }, orderBy: { codigo: "asc" }, select: { id: true, codigo: true, descripcion: true } }),
+    db.bomba.findMany({
+      where: { activa: true },
+      orderBy: [{ descripcion: "asc" }, { codigo: "asc" }],
+      select: { id: true, codigo: true, descripcion: true },
+    }),
     db.operario.findMany({ where: { activo: true }, orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
   ]);
   return {

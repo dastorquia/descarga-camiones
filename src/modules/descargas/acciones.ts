@@ -117,6 +117,8 @@ export async function iniciarDescarga(_previo: EstadoAccion, formulario: FormDat
     const datos = leer(esquemaNuevaDescarga, formulario);
     const hoja = normalizarHojaDeRuta(datos.hojaDeRuta);
     if (!hoja.ok) throw new ErrorNegocio(hoja.error);
+    const patente = normalizarPatente(datos.patente);
+    if (!patente.ok) throw new ErrorNegocio(patente.error);
     const inicio = instante(datos.dia, datos.hora);
     const error = errorAlAbrir(inicio, [], new Date());
     if (error) throw new ErrorNegocio(error);
@@ -131,7 +133,7 @@ export async function iniciarDescarga(_previo: EstadoAccion, formulario: FormDat
         data: {
           tipo: datos.tipo,
           hojaDeRuta: hoja.valor,
-          patente: normalizarPatente(datos.patente),
+          patente: patente.valor,
           productoId: datos.productoId,
           proveedorId: datos.proveedorId,
           tanqueId: datos.tanqueId,

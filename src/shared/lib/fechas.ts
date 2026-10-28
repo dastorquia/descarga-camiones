@@ -72,6 +72,15 @@ export function formatearHora(fecha: Date): string {
   return formatoHora.format(fecha);
 }
 
+/** "2 h 05 min", "45 min" o "menos de 1 min". */
+export function formatearDuracion(ms: number): string {
+  const minutos = Math.floor(ms / 60_000);
+  if (minutos < 1) return "menos de 1 min";
+  const h = Math.floor(minutos / 60);
+  const m = minutos % 60;
+  return h === 0 ? `${m} min` : `${h} h ${String(m).padStart(2, "0")} min`;
+}
+
 /** "28/10" a partir de "2026-10-28" */
 export function formatearDiaCorto(dia: string): string {
   const [, mes, d] = dia.split("-");

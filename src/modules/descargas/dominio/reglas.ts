@@ -31,10 +31,15 @@ export function normalizarHojaDeRuta(texto: string): { ok: true; valor: string }
   return { ok: true, valor };
 }
 
-/** Patente opcional: sin espacios y en mayúsculas. */
-export function normalizarPatente(texto: string): string | null {
+/** Patente obligatoria: sin espacios, en mayúsculas, solo letras y números. */
+export function normalizarPatente(texto: string): { ok: true; valor: string } | { ok: false; error: string } {
   const valor = texto.replace(/\s/g, "").toUpperCase();
-  return valor === "" ? null : valor;
+  if (valor === "") return { ok: false, error: "Cargá la patente." };
+  if (!/^[A-Z0-9]+$/.test(valor)) {
+    return { ok: false, error: "La patente lleva solo letras y números, sin guiones ni símbolos." };
+  }
+  if (valor.length > 10) return { ok: false, error: "La patente es demasiado larga." };
+  return { ok: true, valor };
 }
 
 export function esFuturo(fecha: Date, ahora: Date): boolean {

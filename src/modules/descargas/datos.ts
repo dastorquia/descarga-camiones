@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "@/shared/lib/db";
+import { aDiaHora, desdeDiaHora } from "@/shared/lib/fechas";
 
 // Lecturas de descargas para las pantallas.
 
@@ -23,6 +24,18 @@ export async function descargasActivas() {
     orderBy: { creadaEn: "desc" },
     include: conDetalle,
   });
+}
+
+/** Finalizadas cuyo último tramo terminó hoy (día de Argentina). */
+export async function descargasFinalizadasHoy() {
+  const inicioDeHoy = desdeDiaHora(aDiaHora(new Date()).dia, "00:00");
+  if (!inicioDeHoy) return [];
+  const candidatas = await db.descarga.findMany({
+    where: { estado: "FINALIZADA", tramos: { some: { fin: { gte: inicioDeHoy } } } },
+    include: conDetalle,
+  });
+  const fin = (d: (typeof candidatas)[number]) => Math.max(...d.tramos.map((t) => t.fin?.getTime() ?? 0));
+  return candidatas.filter((d) => fin(d) >= inicioDeHoy.getTime()).sort((a, b) => fin(b) - fin(a));
 }
 
 export async function detalleDescarga(id: number) {

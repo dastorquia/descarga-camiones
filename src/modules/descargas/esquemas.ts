@@ -10,7 +10,7 @@ const hora = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Elegí la hora.");
 export const esquemaNuevaDescarga = z.object({
   tipo: z.enum(["DESCARGA", "CARGA"], { error: "Elegí si es descarga o carga." }),
   hojaDeRuta: z.string(),
-  patente: z.string().max(15, "La patente es demasiado larga.").default(""),
+  patente: z.string().default(""),
   productoId: id("Elegí el producto."),
   proveedorId: id("Elegí el proveedor o cliente."),
   tanqueId: id("Elegí el tanque."),

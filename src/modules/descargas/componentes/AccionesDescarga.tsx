@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { sectorCorto } from "@/shared/catalogos/sector";
 import type { Opcion, OpcionBomba } from "@/shared/catalogos/datos";
 import { aDiaHora } from "@/shared/lib/fechas";
 import { Campo, DiaHora, Desplegable, Texto } from "@/shared/ui/campos";
@@ -13,6 +12,7 @@ import {
   reanudarDescarga,
   type EstadoAccion,
 } from "../acciones";
+import { SelectorBomba } from "./SelectorBomba";
 
 type Props = {
   descargaId: number;
@@ -142,24 +142,11 @@ function FormularioPausar(props: PropsFormulario) {
 
 function FormularioReanudar(props: PropsFormulario & { dia: string }) {
   const { estado, alEnviar, enviando } = useFormulario<EstadoAccion>(reanudarDescarga, {});
-  const [bombaId, setBombaId] = useState(() =>
-    props.ultimaBombaId && !props.ocupadas[props.ultimaBombaId] ? String(props.ultimaBombaId) : "",
-  );
-  const bomba = props.bombas.find((b) => String(b.id) === bombaId);
+  const inicial = props.ultimaBombaId && !props.ocupadas[props.ultimaBombaId] ? String(props.ultimaBombaId) : "";
   return (
     <form onSubmit={alEnviar} className="flex flex-col gap-5">
       <input type="hidden" name="descargaId" value={props.descargaId} />
-      <Campo etiqueta="Bomba" ayuda={bomba?.sector ? `Sector ${sectorCorto(bomba.sector)} · ${bomba.sector}` : undefined}>
-        <Desplegable
-          nombre="bombaId"
-          valor={bombaId}
-          alCambiar={setBombaId}
-          opciones={props.bombas.map((b) => {
-            const enUso = props.ocupadas[b.id];
-            return { valor: b.id, texto: enUso ? `${b.codigo} — en uso (${enUso})` : b.codigo, deshabilitada: !!enUso };
-          })}
-        />
-      </Campo>
+      <SelectorBomba bombas={props.bombas} ocupadas={props.ocupadas} inicial={inicial} />
       <Campo etiqueta="Operario">
         <Desplegable
           nombre="operarioId"

@@ -304,7 +304,11 @@ Estas decisiones precisan o corrigen las secciones anteriores. Ante una contradi
   - un tramo nuevo de una descarga debe empezar después del fin del tramo anterior;
   - no se aceptan horas futuras, con 5 minutos de tolerancia.
 - **Bloqueo del PIN:** los intentos fallidos se cuentan por dispositivo (cookie) y por IP, y se guardan en la base.
-- **Hoja de ruta:** solo letras y números, sin espacios ni caracteres especiales. Se guarda en mayúsculas.
+- **Hoja de ruta:** solo letras y números, sin espacios ni caracteres especiales. Se guarda en mayúsculas. El campo no deja tipear otros caracteres.
+- **Patente obligatoria** (corrige las secciones 4 y 12): solo letras y números, en mayúsculas. La columna sigue admitiendo vacío en la base, pero la app la exige.
+- **Bomba en desplegables y listas:** "D1-BCI010". Al elegirla se muestra en negrita "Descarga 1 · Bomba BCI010".
+- **Finalizar una descarga pausada:** se permite; pide solo las toneladas.
+- **Inicio del Colaborador = tablero por sector:** una tarjeta por sector (Descarga 1, 2 y 3) con sus camiones, la bomba en uso y hace cuánto bombea (solo para mostrar, nunca para estadísticas). Cada sector tiene "+ Agregar", que ofrece sus bombas. Debajo, las "Finalizadas hoy". Se actualiza solo cada 30 segundos.
 - **Sector de bomba:** se guarda en la descripción de la bomba ("Descarga 1", "Descarga 2" o "Descarga 3"). En pantalla se muestra abreviado (D1, D2 o D3) en letra chica.
 - **Sesión:** la cookie se firma con la variable `SESSION_SECRET`, que va en `.env` además de `DATABASE_URL` y `DIRECT_URL`.
 - **Prisma 7:** la conexión se configura en `prisma.config.ts` y en el cliente de la app, no en `schema.prisma`. Los modelos son los de la sección 4.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aDiaHora, desdeDiaHora, formatearFechaHora, formatearHora } from "./fechas";
+import { aDiaHora, desdeDiaHora, formatearDuracion, formatearFechaHora, formatearHora } from "./fechas";
 
 describe("fechas en hora de Argentina", () => {
   it("convierte día y hora de Argentina a UTC (UTC−3)", () => {
@@ -18,6 +18,12 @@ describe("fechas en hora de Argentina", () => {
     expect(desdeDiaHora("2026-10-01", "24:00")).toBeNull();
     expect(desdeDiaHora("2026-10-01", "9:00")).toBeNull();
     expect(desdeDiaHora("", "")).toBeNull();
+  });
+
+  it("muestra duraciones de forma simple", () => {
+    expect(formatearDuracion(30_000)).toBe("menos de 1 min");
+    expect(formatearDuracion(45 * 60_000)).toBe("45 min");
+    expect(formatearDuracion(125 * 60_000)).toBe("2 h 05 min");
   });
 
   it("muestra en formato argentino", () => {

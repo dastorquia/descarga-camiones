@@ -8,7 +8,7 @@ import { formatearHoras, horasBomba, horasTramo } from "@/modules/descargas/domi
 import { formatearToneladas } from "@/modules/descargas/dominio/toneladas";
 import { exigirPermiso } from "@/shared/auth/sesion";
 import { catalogosActivos } from "@/shared/catalogos/datos";
-import { sectorCorto } from "@/shared/catalogos/sector";
+import { etiquetaBomba } from "@/shared/catalogos/sector";
 import { aDiaHora, formatearFechaHora } from "@/shared/lib/fechas";
 import { Encabezado } from "@/shared/ui/Encabezado";
 
@@ -76,8 +76,7 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
                   </span>
                 </div>
                 <span>
-                  Bomba {t.bomba.codigo}
-                  {t.bomba.descripcion && <span className="text-xs text-slate-600"> ({sectorCorto(t.bomba.descripcion)})</span>}
+                  Bomba {etiquetaBomba(t.bomba.codigo, t.bomba.descripcion)}
                   {" · "}
                   {t.operario.nombre}
                 </span>
