@@ -1,0 +1,111 @@
+# CLAUDE.md: App de carga y descarga de camiones
+
+App web de Santa Fe Aceites para registrar la carga y descarga de camiones en planta.
+
+**La especificación manda:** [docs/ESPECIFICACION.md](docs/ESPECIFICACION.md). Leela antes de cada etapa. La sección 13 tiene decisiones posteriores que corrigen secciones anteriores: ante una contradicción, vale la sección 13.
+
+@AGENTS.md
+
+## Forma de trabajo
+
+- Se trabaja por etapas, en el orden de la sección 10 de la especificación. Al terminar cada una:
+  - resumir lo hecho y cómo probarlo;
+  - hacer un commit;
+  - **esperar la confirmación del usuario** antes de seguir.
+- **No agregar funciones que no estén en la especificación** sin consultar primero.
+- Las credenciales van solo en `.env`, que está excluido de git. Nunca se escriben en el código, en documentación ni en commits. `.env.example` lleva solo los nombres de las variables.
+
+## Stack
+
+- Next.js 16 (App Router), React 19 y TypeScript `strict`.
+- Tailwind CSS 4.
+- Prisma 7 sobre PostgreSQL (Neon), con `@prisma/adapter-pg`.
+  - El esquema está en `prisma/schema.prisma`.
+  - La conexión del CLI está en `prisma.config.ts` y usa `DIRECT_URL`.
+  - La conexión de la app está en `src/shared/lib/db.ts` y usa `DATABASE_URL`, con pooler.
+  - El cliente se genera en `src/generated/prisma`, que no se versiona.
+- Zod para validar, con los mismos esquemas en formularios y servidor.
+- Vitest para las pruebas.
+- Despliegue en Vercel (Etapa 7).
+
+## Estructura
+
+```
+src/app/                  rutas y páginas (finas: delegan en los módulos)
+src/modules/descargas/    módulo de descargas y cargas (lógica, acciones, componentes)
+src/shared/auth/          perfiles y sesión: los permisos se resuelven solo acá
+src/shared/auditoria/     registro en AuditLog
+src/shared/catalogos/     bombas, tanques, productos, proveedores y operarios
+src/shared/config/        claves de la tabla Config
+src/shared/ui/            componentes compartidos
+src/shared/lib/           utilidades (db, fechas, números)
+prisma/                   esquema, migraciones, seed y catálogos iniciales
+```
+
+Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las tablas existentes.
+
+## Reglas clave del negocio
+
+- **Descarga = camión** (una por hoja de ruta). **TramoBombeo = período continuo de bombeo.** `tipo` puede ser DESCARGA o CARGA. En una CARGA, el tanque es el de origen y el proveedor es el cliente.
+- **Horas de bomba:**
+  - salen solo de los tramos **cerrados** (fin − inicio);
+  - un tramo abierto se muestra "en curso" y nunca se calcula con la hora actual;
+  - caso de prueba obligatorio: 16:00 a 19:30 del día 1 más 06:00 a 09:15 del día 2 da **6,75 h** (y no 17 h);
+  - en reportes por día, un tramo que cruza la medianoche se reparte en la medianoche de Argentina.
+- **Flujo:**
+  - Iniciar: EN_CURSO, con el primer tramo abierto.
+  - Pausar: cierra el tramo con hora de fin manual. Pasa a PAUSADA.
+  - Reanudar: abre un tramo nuevo con bomba, operario y hora de inicio manual. Pasa a EN_CURSO.
+  - Finalizar: cierra el tramo con hora de fin manual y pide toneladas. Pasa a FINALIZADA.
+  - **Una descarga finalizada no se reabre.**
+- **Validaciones:**
+  - la hoja de ruta es única, solo letras y números, y se guarda en mayúsculas;
+  - el fin debe ser posterior al inicio;
+  - no se aceptan horas futuras (5 minutos de tolerancia);
+  - un tramo nuevo empieza después del fin del anterior de la misma descarga;
+  - una bomba no puede tener tramos solapados ni dos tramos abiertos;
+  - una descarga no puede tener dos tramos abiertos;
+  - solo se eligen catálogos **activos**;
+  - no se puede finalizar sin toneladas;
+  - el tanque ocupado **no** se valida.
+- **Toneladas:**
+  - tipo `Decimal(10,3)`, nunca `Float`;
+  - se cargan solo al finalizar; antes se muestra "—" (nunca 0);
+  - deben ser mayores a 0, con hasta 3 decimales y coma decimal, y siempre se muestran con la unidad "t";
+  - fuera del rango configurable (3 a 40 t), la app muestra una advertencia que no bloquea;
+  - por tramo, solo las asigna el Supervisor: la suma debe ser menor o igual al total y se rotula "asignación manual".
+- **Perfiles:**
+  - Colaborador: entra sin clave. Puede crear, pausar, reanudar y finalizar, y editar datos y tramos mientras la descarga no esté finalizada.
+  - Supervisor: entra con PIN y puede todo lo anterior. Además edita cualquier registro (incluso finalizado), asigna toneladas por tramo, administra catálogos, umbrales y PIN, y ve los reportes.
+- **PIN:**
+  - inicial `1234`, guardado como hash bcrypt en `Config` y validado en el servidor;
+  - la sesión va en una cookie httpOnly firmada con `SESSION_SECRET`;
+  - tras 5 intentos fallidos (contados por dispositivo e IP, en la base), bloqueo de 5 minutos;
+  - la sesión de Supervisor vence tras 30 minutos de inactividad;
+  - mientras siga siendo el PIN por defecto, se muestra un aviso.
+- **Catálogos:** se desactivan, nunca se borran.
+- **Auditoría:** toda edición o desactivación va a `AuditLog`, con perfil, valor anterior y nuevo, y fecha.
+- **Alerta:** un tramo abierto por más de 12 horas (valor configurable) se marca en rojo en el tablero del Supervisor.
+
+## Convenciones
+
+- **Interfaz en español de Argentina** (voseo: "Elegí", "Cargá"), para personas con conocimientos básicos de PC:
+  - pensada primero para celular;
+  - botones grandes y pocos campos por pantalla;
+  - sin jerga técnica.
+- **Fechas:**
+  - se guardan en **UTC** y se muestran en `America/Argentina/Buenos_Aires`;
+  - en los formularios, día y hora son campos separados, y el día de fin viene por defecto igual al de inicio.
+- **Números:** coma decimal en pantalla (6,75 h; 28,450 t).
+- **Código:** nombres de dominio en español (descarga, tramo, bomba). Las reglas de negocio viven en el servidor y se prueban con funciones puras en Vitest.
+- **Antes de cada commit:** correr `npm run typecheck`, `npm run lint` y `npm test`.
+
+## Comandos
+
+- `npm run dev`: servidor de desarrollo.
+- `npm test`: pruebas.
+- `npm run typecheck`: verificación de tipos.
+- `npm run lint`: revisión de estilo.
+- `npm run db:migrate`: crea o aplica migraciones en desarrollo.
+- `npm run db:seed`: carga el PIN, los umbrales y los catálogos. Es idempotente.
+- `npm run db:studio`: explorador visual de la base.

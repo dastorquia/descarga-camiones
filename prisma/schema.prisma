@@ -1,0 +1,117 @@
+// Esquema de la sección 4 de docs/ESPECIFICACION.md.
+// Prisma 7: la conexión se define en prisma.config.ts (CLI) y en
+// src/shared/lib/db.ts (app), no acá. Los modelos son los de la especificación.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EstadoDescarga {
+  EN_CURSO
+  PAUSADA
+  FINALIZADA
+}
+
+enum TipoOperacion {
+  DESCARGA
+  CARGA
+}
+
+model Descarga {
+  id            Int            @id @default(autoincrement())
+  hojaDeRuta    String         @unique
+  tipo          TipoOperacion  @default(DESCARGA)
+  patente       String?
+  productoId    Int
+  proveedorId   Int
+  tanqueId      Int
+  estado        EstadoDescarga @default(EN_CURSO)
+  toneladas     Decimal?       @db.Decimal(10, 3)
+  observaciones String?
+  creadaEn      DateTime       @default(now())
+  actualizadaEn DateTime       @updatedAt
+
+  producto  Producto      @relation(fields: [productoId], references: [id])
+  proveedor Proveedor     @relation(fields: [proveedorId], references: [id])
+  tanque    Tanque        @relation(fields: [tanqueId], references: [id])
+  tramos    TramoBombeo[]
+
+  @@index([estado])
+  @@index([creadaEn])
+}
+
+model TramoBombeo {
+  id         Int       @id @default(autoincrement())
+  descargaId Int
+  bombaId    Int
+  operarioId Int
+  inicio     DateTime
+  fin        DateTime?
+  // Solo lo completa el Supervisor, en el caso excepcional de dos bombas.
+  toneladas  Decimal?  @db.Decimal(10, 3)
+
+  descarga Descarga @relation(fields: [descargaId], references: [id], onDelete: Cascade)
+  bomba    Bomba    @relation(fields: [bombaId], references: [id])
+  operario Operario @relation(fields: [operarioId], references: [id])
+
+  @@index([bombaId, inicio])
+  @@index([descargaId])
+}
+
+model Bomba {
+  id          Int           @id @default(autoincrement())
+  codigo      String        @unique
+  // Se usa para el sector: "Descarga 1", "Descarga 2", "Descarga 3".
+  descripcion String?
+  activa      Boolean       @default(true)
+  tramos      TramoBombeo[]
+}
+
+model Tanque {
+  id        Int        @id @default(autoincrement())
+  codigo    String     @unique // formato TK-001, TK-012, TK-101
+  activo    Boolean    @default(true)
+  descargas Descarga[]
+}
+
+model Producto {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
+  activo    Boolean    @default(true)
+  descargas Descarga[]
+}
+
+model Proveedor {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
+  activo    Boolean    @default(true)
+  descargas Descarga[]
+}
+
+model Operario {
+  id     Int           @id @default(autoincrement())
+  nombre String        @unique
+  activo Boolean       @default(true)
+  tramos TramoBombeo[]
+}
+
+model Config {
+  clave String @id
+  valor String // por ejemplo: pinSupervisorHash, pinPorDefecto, umbrales
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime @default(now())
+  perfil    String // COLABORADOR | SUPERVISOR
+  entidad   String
+  entidadId Int
+  accion    String // CREAR | EDITAR | DESACTIVAR ...
+  antes     Json?
+  despues   Json?
+}
