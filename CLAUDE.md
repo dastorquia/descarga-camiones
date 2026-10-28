@@ -24,6 +24,7 @@ App web de Santa Fe Aceites para registrar la carga y descarga de camiones en pl
   - La conexión del CLI está en `prisma.config.ts` y usa `DIRECT_URL`.
   - La conexión de la app está en `src/shared/lib/db.ts` y usa `DATABASE_URL`, con pooler.
   - El cliente se genera en `src/generated/prisma`, que no se versiona.
+- **`cacheComponents` está desactivado** a propósito: todas las pantallas dependen de la sesión y de datos en vivo, así que se renderizan en cada pedido. En Next 16, `middleware` se llama `proxy` (`src/proxy.ts`).
 - Zod para validar, con los mismos esquemas en formularios y servidor.
 - Vitest para las pruebas.
 - Despliegue en Vercel (Etapa 7).
@@ -79,10 +80,11 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - Supervisor: entra con PIN y puede todo lo anterior. Además edita cualquier registro (incluso finalizado), asigna toneladas por tramo, administra catálogos, umbrales y PIN, y ve los reportes.
 - **PIN:**
   - inicial `1234`, guardado como hash bcrypt en `Config` y validado en el servidor;
-  - la sesión va en una cookie httpOnly firmada con `SESSION_SECRET`;
-  - tras 5 intentos fallidos (contados por dispositivo e IP, en la base), bloqueo de 5 minutos;
-  - la sesión de Supervisor vence tras 30 minutos de inactividad;
+  - la sesión va en una cookie httpOnly firmada con `SESSION_SECRET` (`src/shared/auth/token.ts`);
+  - tras 5 intentos fallidos desde un dispositivo, o 20 desde una misma IP (la planta puede compartir IP), bloqueo de 5 minutos; se guarda en la tabla `IntentoPin`;
+  - la sesión de Supervisor vence tras 30 minutos de inactividad; la de Colaborador, tras 30 días. El proxy renueva la sesión con cada pedido;
   - mientras siga siendo el PIN por defecto, se muestra un aviso.
+- **Autorización:** los permisos están solo en `src/shared/auth/perfiles.ts`. El proxy hace un control previo, pero cada página y cada Server Action vuelve a verificar con `exigirPermiso`.
 - **Catálogos:** se desactivan, nunca se borran.
 - **Auditoría:** toda edición o desactivación va a `AuditLog`, con perfil, valor anterior y nuevo, y fecha.
 - **Alerta:** un tramo abierto por más de 12 horas (valor configurable) se marca en rojo en el tablero del Supervisor.

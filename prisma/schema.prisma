@@ -105,6 +105,15 @@ model Config {
   valor String // por ejemplo: pinSupervisorHash, pinPorDefecto, umbrales
 }
 
+// Agregado en la Etapa 2 (migración aditiva): intentos fallidos de PIN,
+// por dispositivo ("dispositivo:<id>") y por IP ("ip:<dirección>").
+model IntentoPin {
+  clave          String    @id
+  fallidos       Int       @default(0)
+  bloqueadoHasta DateTime?
+  actualizadoEn  DateTime  @updatedAt
+}
+
 model AuditLog {
   id        Int      @id @default(autoincrement())
   fecha     DateTime @default(now())
