@@ -106,6 +106,11 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - Formularios cliente: usar `useFormulario` (`src/shared/ui/useFormulario.ts`), que no vacía los campos si hay error.
   - Toneladas: se manejan como texto ("28.450") hasta Prisma; nunca `Number` para guardar.
   - La advertencia de toneladas fuera de rango se confirma reenviando el mismo valor (`confirmado` = valor advertido).
+  - Un archivo `"use server"` solo exporta acciones async: las ayudas compartidas van en `src/modules/descargas/servidor.ts`.
+  - Edición (`edicion-acciones.ts`): al editar un tramo no cambia si está abierto o cerrado; las reglas están en `dominio/edicion.ts`. Las toneladas por tramo se suman en kilos enteros (`aKilos`).
+  - Catálogos: duplicados se comparan sin distinguir mayúsculas (`existeOtro`). Se desactivan, nunca se borran.
+- **Pantallas de la Etapa 5:** `/supervisor/administracion` (catálogos, umbrales, PIN), `/colaborador/descargas/[id]/editar` y `/colaborador/historial` (ambos perfiles; filtros en la dirección).
+- **Servidor de desarrollo:** si una acción recién creada falla con "undefined" en el servidor, reiniciar `npm run dev` (Turbopack a veces conserva una versión vieja).
 - **Antes de cada commit:** correr `npm run typecheck`, `npm run lint` y `npm test`.
 
 ## Comandos

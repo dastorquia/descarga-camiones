@@ -11,8 +11,8 @@ export function soloAlfanumerico(texto: string): string {
  * Campo que no permite escribir espacios ni caracteres especiales:
  * se filtran mientras se tipea. El servidor vuelve a validar igual.
  */
-export function CampoAlfanumerico({ nombre, maximo }: { nombre: string; maximo: number }) {
-  const [valor, setValor] = useState("");
+export function CampoAlfanumerico({ nombre, maximo, inicial = "" }: { nombre: string; maximo: number; inicial?: string }) {
+  const [valor, setValor] = useState(inicial);
   return (
     <input
       name={nombre}

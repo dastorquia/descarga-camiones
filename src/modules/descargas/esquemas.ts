@@ -35,6 +35,22 @@ export const esquemaReanudar = z.object({
   hora,
 });
 
+export const esquemaEditarDatos = esquemaNuevaDescarga
+  .omit({ bombaId: true, operarioId: true, dia: true, hora: true })
+  .extend({ descargaId: id("Descarga inválida.") });
+
+export const esquemaEditarTramo = z.object({
+  descargaId: id("Descarga inválida."),
+  tramoId: id("Tramo inválido."),
+  bombaId: id("Elegí la bomba."),
+  operarioId: id("Elegí el operario."),
+  inicioDia: dia,
+  inicioHora: hora,
+  // Vacíos si el tramo sigue en curso.
+  finDia: z.union([dia, z.literal("")]).default(""),
+  finHora: z.union([hora, z.literal("")]).default(""),
+});
+
 export const esquemaFinalizar = z.object({
   descargaId: id("Descarga inválida."),
   // Vacíos cuando la descarga ya estaba pausada (no hay tramo para cerrar).

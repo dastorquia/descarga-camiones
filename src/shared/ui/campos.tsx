@@ -54,14 +54,14 @@ export function Texto(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={control} />;
 }
 
-/** Día y hora en dos campos separados (sección 4). */
-export function DiaHora({ etiqueta, dia, hora }: { etiqueta: string; dia: string; hora: string }) {
+/** Día y hora en dos campos separados (sección 4). `prefijo` cambia los nombres: "inicio" → inicioDia, inicioHora. */
+export function DiaHora({ etiqueta, dia, hora, prefijo }: { etiqueta: string; dia: string; hora: string; prefijo?: string }) {
   return (
     <fieldset className="flex flex-col gap-1.5">
       <legend className="mb-1.5 text-base font-semibold">{etiqueta}</legend>
       <div className="grid grid-cols-2 gap-3">
-        <input type="date" name="dia" defaultValue={dia} required aria-label="Día" className={control} />
-        <input type="time" name="hora" defaultValue={hora} required aria-label="Hora" className={control} />
+        <input type="date" name={prefijo ? `${prefijo}Dia` : "dia"} defaultValue={dia} required aria-label={`${etiqueta}: día`} className={control} />
+        <input type="time" name={prefijo ? `${prefijo}Hora` : "hora"} defaultValue={hora} required aria-label={`${etiqueta}: hora`} className={control} />
       </div>
     </fieldset>
   );

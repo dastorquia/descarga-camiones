@@ -6,7 +6,8 @@ import { EtiquetaEstado, EtiquetaTipo } from "@/modules/descargas/componentes/Et
 import { bombasOcupadas, detalleDescarga } from "@/modules/descargas/datos";
 import { formatearHoras, horasBomba, horasTramo } from "@/modules/descargas/dominio/horas";
 import { formatearToneladas } from "@/modules/descargas/dominio/toneladas";
-import { inicioDe } from "@/shared/auth/perfiles";
+import { inicioDe, puede } from "@/shared/auth/perfiles";
+import { botonSecundario } from "@/shared/ui/estilos";
 import { exigirPermiso } from "@/shared/auth/sesion";
 import { catalogosActivos } from "@/shared/catalogos/datos";
 import { etiquetaBomba } from "@/shared/catalogos/sector";
@@ -53,6 +54,12 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
           ocupadas={Object.fromEntries(ocupadas)}
         />
 
+        {(descarga.estado !== "FINALIZADA" || puede(sesion.perfil, "descargas.editarFinalizadas")) && (
+          <Link href={`/colaborador/descargas/${descarga.id}/editar`} className={botonSecundario}>
+            {descarga.estado === "FINALIZADA" ? "Corregir datos" : "Editar datos"}
+          </Link>
+        )}
+
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-xl border-2 border-slate-200 bg-white p-4">
           <Dato nombre="Patente">{descarga.patente ?? "—"}</Dato>
           <Dato nombre="Producto">{descarga.producto.nombre}</Dato>
@@ -84,6 +91,11 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
                 <span className="text-sm text-slate-600">
                   {formatearFechaHora(t.inicio)} → {t.fin ? formatearFechaHora(t.fin) : "…"}
                 </span>
+                {t.toneladas && (
+                  <span className="text-sm">
+                    {formatearToneladas(t.toneladas)} <span className="text-amber-800">· asignación manual</span>
+                  </span>
+                )}
               </div>
             );
           })}

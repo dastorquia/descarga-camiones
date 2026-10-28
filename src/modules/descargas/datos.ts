@@ -1,5 +1,7 @@
 import "server-only";
+import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/shared/lib/db";
+import type { Filtros } from "./dominio/filtros";
 import { aDiaHora, desdeDiaHora } from "@/shared/lib/fechas";
 
 // Lecturas de descargas para las pantallas.
@@ -36,6 +38,44 @@ export async function descargasFinalizadasHoy() {
   });
   const fin = (d: (typeof candidatas)[number]) => Math.max(...d.tramos.map((t) => t.fin?.getTime() ?? 0));
   return candidatas.filter((d) => fin(d) >= inicioDeHoy.getTime()).sort((a, b) => fin(b) - fin(a));
+}
+
+export const POR_PAGINA = 25;
+
+/**
+ * Historial con filtros. El filtro de fechas toma las descargas que tuvieron
+ * bombeo en ese período (algún tramo empezó entre "desde" y "hasta", inclusive).
+ */
+export async function buscarHistorial(f: Filtros) {
+  const desde = f.desde ? desdeDiaHora(f.desde, "00:00") : null;
+  const hastaDia = f.hasta ? desdeDiaHora(f.hasta, "00:00") : null;
+  const hasta = hastaDia ? new Date(hastaDia.getTime() + 24 * 3_600_000) : null;
+
+  const tramo: Prisma.TramoBombeoWhereInput = {
+    ...(f.bombaId ? { bombaId: f.bombaId } : {}),
+    ...(desde || hasta ? { inicio: { ...(desde ? { gte: desde } : {}), ...(hasta ? { lt: hasta } : {}) } } : {}),
+  };
+  const where: Prisma.DescargaWhereInput = {
+    ...(f.estado ? { estado: f.estado } : {}),
+    ...(f.tipo ? { tipo: f.tipo } : {}),
+    ...(f.productoId ? { productoId: f.productoId } : {}),
+    ...(f.proveedorId ? { proveedorId: f.proveedorId } : {}),
+    ...(f.tanqueId ? { tanqueId: f.tanqueId } : {}),
+    ...(f.texto ? { OR: [{ hojaDeRuta: { contains: f.texto } }, { patente: { contains: f.texto } }] } : {}),
+    ...(Object.keys(tramo).length ? { tramos: { some: tramo } } : {}),
+  };
+
+  const [total, descargas] = await Promise.all([
+    db.descarga.count({ where }),
+    db.descarga.findMany({
+      where,
+      orderBy: { creadaEn: "desc" },
+      skip: (f.pagina - 1) * POR_PAGINA,
+      take: POR_PAGINA,
+      include: conDetalle,
+    }),
+  ]);
+  return { total, descargas, paginas: Math.max(1, Math.ceil(total / POR_PAGINA)) };
 }
 
 export async function detalleDescarga(id: number) {

@@ -10,7 +10,7 @@ import { etiquetaBomba, sectorCorto } from "@/shared/catalogos/sector";
 import { formatearFechaHora, formatearHora } from "@/shared/lib/fechas";
 import { Actualizador } from "@/shared/ui/Actualizador";
 import { Encabezado } from "@/shared/ui/Encabezado";
-import { botonPrincipal } from "@/shared/ui/estilos";
+import { botonPrincipal, botonSecundario } from "@/shared/ui/estilos";
 import { TiempoDesde } from "@/shared/ui/TiempoDesde";
 
 type Activa = Awaited<ReturnType<typeof descargasActivas>>[number];
@@ -35,9 +35,14 @@ export default async function TableroColaborador() {
           actualiza solo para el Colaborador, para no mantener viva la sesión del Supervisor. */}
       {sesion.perfil === "COLABORADOR" && <Actualizador segundos={30} />}
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6">
-        <Link href="/colaborador/nueva" className={`${botonPrincipal} min-h-16 text-xl md:max-w-sm`}>
-          + Nueva descarga
-        </Link>
+        <div className="flex flex-col gap-3 md:flex-row">
+          <Link href="/colaborador/nueva" className={`${botonPrincipal} min-h-16 text-xl md:max-w-sm`}>
+            + Nueva descarga
+          </Link>
+          <Link href="/colaborador/historial" className={`${botonSecundario} md:max-w-xs`}>
+            Historial
+          </Link>
+        </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           {grupos.map((g) => (

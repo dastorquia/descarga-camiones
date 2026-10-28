@@ -2,7 +2,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import type { Perfil } from "@/shared/auth/perfiles";
 
-export type AccionAuditoria = "CREAR" | "EDITAR" | "DESACTIVAR";
+export type AccionAuditoria = "CREAR" | "EDITAR" | "DESACTIVAR" | "REACTIVAR";
 
 type Entrada = {
   perfil: Perfil;
