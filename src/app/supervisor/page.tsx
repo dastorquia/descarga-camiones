@@ -4,7 +4,6 @@ import { TableroSupervisor } from "@/modules/descargas/tablero-supervisor/Tabler
 import { exigirPermiso } from "@/shared/auth/sesion";
 
 // Inicio del Supervisor: menú y tablero (sección 6.5).
-// Los reportes (Etapa 6) se suman al menú en su etapa.
 export default async function InicioSupervisor() {
   await exigirPermiso("tablero.supervisor");
   const datos = await datosTablero();
@@ -21,6 +20,9 @@ export default async function InicioSupervisor() {
         </Link>
         <Link href="/colaborador/historial" className={enlace}>
           Historial
+        </Link>
+        <Link href="/supervisor/reportes" className={enlace}>
+          Reportes
         </Link>
         <Link href="/supervisor/administracion" className={enlace}>
           Administración

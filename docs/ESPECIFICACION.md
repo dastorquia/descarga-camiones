@@ -312,6 +312,13 @@ Estas decisiones precisan o corrigen las secciones anteriores. Ante una contradi
   - Quitar: para tramos cargados por error. Pide confirmación y la descarga tiene que quedar con al menos un tramo. Si se quita el tramo en curso, la descarga queda pausada. Si después queda una sola bomba, se borran las toneladas asignadas por tramo. Todo queda en la auditoría como "Eliminación", con los datos del tramo.
   - Agregar: solo tramos ya terminados (con inicio y fin), con las mismas reglas de horarios y bombas. Para seguir bombeando se usa "Reanudar".
 - **Registro de cambios** (pedido el 28/10/2026, solo Supervisor): pantalla que muestra la auditoría con nombres y fechas legibles, filtros por tipo de dato, acción y fechas, y el historial de cambios de cada descarga desde su detalle.
+- **Reportes (Etapa 6):**
+  - Filtros: período (por defecto, el mes en curso) y tipo de operación.
+  - Horas de bomba: se reparten por día en la medianoche de Argentina y se recortan al período.
+  - Toneladas y rendimiento: solo descargas finalizadas, atribuidas al día en que terminaron.
+  - Toneladas por bomba con varias bombas: cuentan los tramos con toneladas asignadas, aunque no estén todos asignados, y se marcan "asignación manual".
+  - Exportación: Excel con todos los reportes (una hoja por reporte) y CSV por reporte (separador ";" y coma decimal, para Excel en español).
+  - Vistas SQL `v_tramos_horas` y `v_descargas_resumen`, documentadas en `docs/VISTAS_SQL.md`.
 - **Inicio del Colaborador = tablero por sector:** una tarjeta por sector (Descarga 1, 2 y 3) con sus camiones, la bomba en uso y hace cuánto bombea (solo para mostrar, nunca para estadísticas). Cada sector tiene "+ Agregar", que ofrece sus bombas. Debajo, las "Finalizadas hoy". Se actualiza solo cada 30 segundos.
 - **Sector de bomba:** se guarda en la descripción de la bomba ("Descarga 1", "Descarga 2" o "Descarga 3"). En pantalla se muestra abreviado (D1, D2 o D3) en letra chica.
 - **Sesión:** la cookie se firma con la variable `SESSION_SECRET`, que va en `.env` además de `DATABASE_URL` y `DIRECT_URL`.

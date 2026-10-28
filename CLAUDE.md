@@ -111,6 +111,9 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - Catálogos: duplicados se comparan sin distinguir mayúsculas (`existeOtro`). Se desactivan, nunca se borran.
 - **Pantallas de la Etapa 5:** `/supervisor/administracion` (catálogos, umbrales, PIN), `/colaborador/descargas/[id]/editar` (incluye quitar y agregar tramos) y `/colaborador/historial` (ambos perfiles; filtros en la dirección), y `/supervisor/auditoria` (registro de cambios; `?descargaId=` para una descarga).
   - Los registros de auditoría de tramos guardan `descargaId` en antes/después, para poder filtrar por descarga aunque el tramo se haya quitado. `describirCambios` (`src/shared/auditoria/describir.ts`) los traduce a texto.
+- **Reportes (Etapa 6):** `/supervisor/reportes` y `/api/supervisor/reportes` (`?formato=xlsx` o `?formato=csv&tabla=<id>`).
+  - Cálculos puros en `src/modules/descargas/dominio/reportes.ts`; cada reporte es una `Tabla` genérica (`reportes/tabla.ts`) que sirve para pantalla, CSV y Excel (`exceljs`).
+  - Vistas SQL en la migración `20261028200000_vistas_reportes`, documentadas en `docs/VISTAS_SQL.md`. Si cambia una tabla que usan, actualizar las vistas en una migración nueva.
 - **Servidor de desarrollo:** si una acción recién creada falla con "undefined" en el servidor, reiniciar `npm run dev` (Turbopack a veces conserva una versión vieja).
 - **Antes de cada commit:** correr `npm run typecheck`, `npm run lint` y `npm test`.
 
