@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { EdicionDescarga, type DescargaEditable } from "@/modules/descargas/componentes/EdicionDescarga";
-import { bombasOcupadas, detalleDescarga } from "@/modules/descargas/datos";
+import { bombasNoDisponibles, detalleDescarga } from "@/modules/descargas/datos";
 import { usaVariasBombas } from "@/modules/descargas/dominio/edicion";
 import { puede } from "@/shared/auth/perfiles";
 import { exigirPermiso } from "@/shared/auth/sesion";
@@ -21,7 +21,7 @@ export default async function EditarDescarga({ params }: PageProps<"/colaborador
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 
-  const [d, catalogos, ocupadas] = await Promise.all([detalleDescarga(id), catalogosActivos(), bombasOcupadas()]);
+  const [d, catalogos, noDisponibles] = await Promise.all([detalleDescarga(id), catalogosActivos(), bombasNoDisponibles(id)]);
   if (!d) notFound();
   if (d.estado === "FINALIZADA" && !puede(sesion.perfil, "descargas.editarFinalizadas")) {
     redirect(`/colaborador/descargas/${id}`);
@@ -36,7 +36,6 @@ export default async function EditarDescarga({ params }: PageProps<"/colaborador
     }
     operarios = conActual(operarios, t.operario.id, t.operario.nombre);
   }
-  for (const [bombaId, hoja] of ocupadas) if (hoja === d.hojaDeRuta) ocupadas.delete(bombaId);
 
   const descarga: DescargaEditable = {
     id: d.id,
@@ -79,7 +78,7 @@ export default async function EditarDescarga({ params }: PageProps<"/colaborador
           tanques={conActual(catalogos.tanques, d.tanqueId, d.tanque.codigo)}
           bombas={bombas}
           operarios={operarios}
-          ocupadas={Object.fromEntries(ocupadas)}
+          noDisponibles={Object.fromEntries(noDisponibles)}
           puedeAsignarToneladas={puede(sesion.perfil, "tramos.asignarToneladas")}
         />
       </main>

@@ -67,6 +67,6 @@ export const esquemaFinalizar = z.object({
   // Vacíos cuando la descarga ya estaba pausada (no hay tramo para cerrar).
   dia: z.union([dia, z.literal("")]),
   hora: z.union([hora, z.literal("")]),
-  toneladas: z.string(),
+  kilos: z.string(),
   confirmado: z.string().optional(),
 });

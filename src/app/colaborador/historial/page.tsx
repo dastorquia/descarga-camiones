@@ -4,7 +4,7 @@ import { EtiquetaEstado, EtiquetaTipo } from "@/modules/descargas/componentes/Et
 import { buscarHistorial } from "@/modules/descargas/datos";
 import { enlaceDePagina, leerFiltros, type Filtros } from "@/modules/descargas/dominio/filtros";
 import { formatearHoras, horasBomba } from "@/modules/descargas/dominio/horas";
-import { formatearToneladas } from "@/modules/descargas/dominio/toneladas";
+import { formatearKilos } from "@/modules/descargas/dominio/toneladas";
 import { inicioDe, puede } from "@/shared/auth/perfiles";
 import { exigirPermiso } from "@/shared/auth/sesion";
 import { catalogosActivos } from "@/shared/catalogos/datos";
@@ -96,7 +96,7 @@ export default async function Historial({ searchParams }: PageProps<"/colaborado
                 </span>
                 <span className="text-sm">Bomba {bombas.join(", ")}</span>
                 <span className="text-sm">
-                  {formatearHoras(horasBomba(d.tramos))} de bomba · {formatearToneladas(d.toneladas)}
+                  {formatearHoras(horasBomba(d.tramos))} de bomba · {formatearKilos(d.toneladas)}
                 </span>
                 <div className="mt-1 flex gap-3">
                   <Link href={`/colaborador/descargas/${d.id}`} className="font-semibold text-blue-700 hover:underline">

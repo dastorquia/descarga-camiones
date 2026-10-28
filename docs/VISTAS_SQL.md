@@ -1,6 +1,6 @@
 # Vistas SQL para análisis
 
-La base tiene dos vistas de solo lectura con las horas ya calculadas, para analizar los datos con Python, Power BI, Excel u otra herramienta. Se crean con la migración `prisma/migrations/20261028200000_vistas_reportes`.
+La base tiene dos vistas de solo lectura con las horas ya calculadas, para analizar los datos con Python, Power BI, Excel u otra herramienta. Se crean con la migración `prisma/migrations/20261029100000_vistas_en_kilos`.
 
 ## Reglas de cálculo
 
@@ -8,7 +8,7 @@ La base tiene dos vistas de solo lectura con las horas ya calculadas, para anali
 - **Fechas:** la base guarda todo en UTC.
   - Las columnas `*_ar` están en hora de Argentina.
   - Las columnas `*_utc` están en UTC.
-- **Toneladas:** número con 3 decimales; el separador decimal depende de la herramienta.
+- **Cantidades:** en **kilos** enteros. El rendimiento está en kg/h.
 
 ## `v_tramos_horas`: un registro por tramo de bombeo
 
@@ -23,7 +23,7 @@ La base tiene dos vistas de solo lectura con las horas ya calculadas, para anali
 | `inicio_utc`, `fin_utc` | Inicio y fin en UTC. |
 | `inicio_ar`, `fin_ar` | Inicio y fin en hora de Argentina. |
 | `horas` | Fin menos inicio, en horas. Vacío si el tramo sigue abierto. |
-| `toneladas_asignacion_manual` | Toneladas que el Supervisor asignó al tramo (solo descargas con varias bombas). |
+| `kilos_asignacion_manual` | Kilos que el Supervisor asignó al tramo (solo descargas con varias bombas). |
 
 ## `v_descargas_resumen`: un registro por descarga o carga
 
@@ -38,8 +38,8 @@ La base tiene dos vistas de solo lectura con las horas ya calculadas, para anali
 | `horas_bombeo` | Suma de los tramos cerrados: las horas de bomba. |
 | `horas_totales` | Del primer inicio al último fin. |
 | `horas_pausa` | `horas_totales` − `horas_bombeo`. |
-| `toneladas` | Total del camión. Vacío hasta finalizar. |
-| `rendimiento_t_h` | `toneladas` ÷ `horas_bombeo`. |
+| `kilos` | Total del camión. Vacío hasta finalizar. |
+| `rendimiento_kg_h` | `kilos` ÷ `horas_bombeo`. |
 | `observaciones` | Texto libre. |
 
 ## Diferencias con la pantalla de Reportes
@@ -47,7 +47,7 @@ La base tiene dos vistas de solo lectura con las horas ya calculadas, para anali
 Los reportes de la app agregan dos cálculos que estas vistas no hacen:
 
 - **Horas por día:** un tramo que cruza la medianoche se reparte entre los días. En las vistas, cada tramo es una sola fila; para repartir por día hay que cortarlo en la medianoche de `inicio_ar`.
-- **Toneladas por bomba con varias bombas:** se usan los tramos con `toneladas_asignacion_manual`.
+- **Kilos por bomba con varias bombas:** se usan los tramos con `kilos_asignacion_manual`.
 
 ## Cómo conectarse
 

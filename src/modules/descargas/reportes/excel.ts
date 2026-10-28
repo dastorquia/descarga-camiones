@@ -4,8 +4,8 @@ import { tituloConUnidad, type Tabla, type TipoColumna } from "./tabla";
 
 const FORMATO: Partial<Record<TipoColumna, string>> = {
   horas: "0.00",
-  toneladas: "0.000",
-  rendimiento: "0.00",
+  kilos: "#,##0",
+  rendimiento: "#,##0",
   entero: "0",
 };
 

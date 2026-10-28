@@ -1,44 +1,49 @@
 import { describe, expect, it } from "vitest";
-import { advertenciaToneladas, formatearToneladas, interpretarToneladas } from "./toneladas";
+import { advertenciaKilos, aKilosDesdeBase, formatearKilos, interpretarKilos, kilosATexto } from "./toneladas";
 
-describe("interpretar toneladas", () => {
-  it("acepta coma decimal y hasta 3 decimales", () => {
-    expect(interpretarToneladas("28,450")).toEqual({ ok: true, valor: "28.450" });
-    expect(interpretarToneladas("28")).toEqual({ ok: true, valor: "28.000" });
-    expect(interpretarToneladas("28,5")).toEqual({ ok: true, valor: "28.500" });
-    expect(interpretarToneladas(" 28,45 t ")).toEqual({ ok: true, valor: "28.450" });
-    expect(interpretarToneladas("0,001")).toEqual({ ok: true, valor: "0.001" });
+describe("interpretar kilos", () => {
+  it("acepta kilos enteros, con o sin punto de miles", () => {
+    expect(interpretarKilos("28000")).toEqual({ ok: true, kilos: 28000, valor: "28.000" });
+    expect(interpretarKilos("28.450")).toEqual({ ok: true, kilos: 28450, valor: "28.450" });
+    expect(interpretarKilos(" 1.234.567 kg ")).toEqual({ ok: true, kilos: 1234567, valor: "1234.567" });
+    expect(interpretarKilos("5")).toEqual({ ok: true, kilos: 5, valor: "0.005" });
   });
 
-  it("rechaza el punto para no confundir 28.450 con veintiocho mil", () => {
-    expect(interpretarToneladas("28.450").ok).toBe(false);
-  });
-
-  it("rechaza vacío, cero, negativos, más de 3 decimales y texto", () => {
-    for (const texto of ["", "0", "0,000", "-5", "28,4501", "abc", "28,", ",5"]) {
-      expect(interpretarToneladas(texto).ok, texto).toBe(false);
+  it("rechaza decimales, vacío, cero, texto y puntos mal puestos", () => {
+    for (const texto of ["", "0", "28,5", "abc", "28.45", "2.80.000", "-100", "99999999"]) {
+      expect(interpretarKilos(texto).ok, texto).toBe(false);
     }
   });
 });
 
-describe("advertencia de rango (no bloquea)", () => {
-  it("no advierte dentro de 3 a 40 t, incluidos los extremos", () => {
-    for (const v of ["3.000", "28.000", "40.000"]) expect(advertenciaToneladas(v, 3, 40)).toBeNull();
-  });
-
-  it("advierte errores de tipeo típicos: 2800 o 2,8", () => {
-    expect(advertenciaToneladas("2800.000", 3, 40)).toContain("2.800,000 t");
-    expect(advertenciaToneladas("2.800", 3, 40)).toContain("fuera de lo habitual");
+describe("conversión con la base (toneladas con 3 decimales)", () => {
+  it("ida y vuelta sin perder un kilo", () => {
+    expect(kilosATexto(28450)).toBe("28.450");
+    expect(aKilosDesdeBase("28.45")).toBe(28450);
+    expect(aKilosDesdeBase("0.001")).toBe(1);
+    expect(aKilosDesdeBase(kilosATexto(1234567))).toBe(1234567);
   });
 });
 
-describe("mostrar toneladas", () => {
-  it("muestra — cuando todavía no se cargaron, nunca 0", () => {
-    expect(formatearToneladas(null)).toBe("—");
-    expect(formatearToneladas(undefined)).toBe("—");
+describe("advertencia de rango (no bloquea)", () => {
+  it("no advierte entre 3.000 y 40.000 kg, incluidos los extremos", () => {
+    for (const k of [3000, 28000, 40000]) expect(advertenciaKilos(k, 3000, 40000)).toBeNull();
   });
 
-  it("muestra 3 decimales con coma y la unidad t", () => {
-    expect(formatearToneladas("28.45")).toBe("28,450 t");
+  it("advierte errores de tipeo típicos: 2.800.000 o 280", () => {
+    expect(advertenciaKilos(2_800_000, 3000, 40000)).toContain("2.800.000 kg");
+    expect(advertenciaKilos(280, 3000, 40000)).toContain("fuera de lo habitual");
+  });
+});
+
+describe("mostrar kilos", () => {
+  it("muestra — cuando todavía no se cargaron, nunca 0", () => {
+    expect(formatearKilos(null)).toBe("—");
+    expect(formatearKilos(undefined)).toBe("—");
+  });
+
+  it("muestra kilos con punto de miles y la unidad kg", () => {
+    expect(formatearKilos("28.45")).toBe("28.450 kg");
+    expect(formatearKilos("0.005")).toBe("5 kg");
   });
 });

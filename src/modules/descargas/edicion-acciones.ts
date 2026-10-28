@@ -8,9 +8,9 @@ import { exigirPermiso } from "@/shared/auth/sesion";
 import { db } from "@/shared/lib/db";
 import { efectoDeQuitar, errorEnAsignacion, errorEnTramos, usaVariasBombas } from "./dominio/edicion";
 import { normalizarHojaDeRuta, normalizarPatente } from "./dominio/reglas";
-import { interpretarToneladas } from "./dominio/toneladas";
+import { interpretarKilos } from "./dominio/toneladas";
 import { esquemaAgregarTramo, esquemaEditarDatos, esquemaEditarTramo } from "./esquemas";
-import { ErrorNegocio, exigirActivos, exigirBombaLibre, instante, leer, mensajeDeError } from "./servidor";
+import { ErrorNegocio, exigirActivos, exigirBombaLibre, exigirBombaSinMantenimiento, instante, leer, mensajeDeError } from "./servidor";
 
 // Edición de registros (Etapa 5). El Colaborador edita mientras la descarga no
 // esté finalizada; el Supervisor, siempre. Todo cambio queda en AuditLog.
@@ -119,6 +119,8 @@ export async function editarTramo(_previo: EstadoEdicion, formulario: FormData):
         tx,
         cambiados({ bombaId: tramo.bombaId, operarioId: tramo.operarioId }, { bombaId: datos.bombaId, operarioId: datos.operarioId }),
       );
+      // Un tramo en curso no puede pasar a una bomba en mantenimiento (los cerrados son historia).
+      if (!fin && datos.bombaId !== tramo.bombaId) await exigirBombaSinMantenimiento(tx, datos.bombaId);
       await exigirBombaLibre(tx, datos.bombaId, inicio, fin, descarga.id);
 
       const previos = { bombaId: tramo.bombaId, operarioId: tramo.operarioId, inicio: tramo.inicio.toISOString(), fin: tramo.fin?.toISOString() ?? null };
@@ -242,25 +244,25 @@ export async function quitarTramo(_previo: EstadoEdicion, formulario: FormData):
 }
 
 /**
- * Supervisor: corrige las toneladas totales de una descarga finalizada y, si usó
- * más de una bomba, asigna toneladas a cada tramo ("asignación manual").
+ * Supervisor: corrige los kilos totales de una descarga finalizada y, si usó
+ * más de una bomba, asigna kilos a cada tramo ("asignación manual").
  */
 export async function editarToneladas(_previo: EstadoEdicion, formulario: FormData): Promise<EstadoEdicion> {
   const { perfil } = await exigirPermiso("tramos.asignarToneladas");
   const id = Number(formulario.get("descargaId"));
   try {
-    const total = interpretarToneladas(String(formulario.get("toneladas") ?? ""));
+    const total = interpretarKilos(String(formulario.get("kilos") ?? ""));
     if (!total.ok) throw new ErrorNegocio(total.error);
 
     await db.$transaction(async (tx) => {
       const descarga = await leerEditable(tx, id, perfil);
-      if (descarga.estado !== "FINALIZADA") throw new ErrorNegocio("Las toneladas se cargan al finalizar la descarga.");
+      if (descarga.estado !== "FINALIZADA") throw new ErrorNegocio("Los kilos se cargan al finalizar la descarga.");
 
       const variasBombas = usaVariasBombas(descarga.tramos);
       const asignadas = descarga.tramos.map((t) => {
         const texto = String(formulario.get(`tramo-${t.id}`) ?? "").trim();
         if (!variasBombas || texto === "") return null;
-        const valor = interpretarToneladas(texto);
+        const valor = interpretarKilos(texto);
         if (!valor.ok) throw new ErrorNegocio(`Tramo: ${valor.error}`);
         return valor.valor;
       });
@@ -288,5 +290,5 @@ export async function editarToneladas(_previo: EstadoEdicion, formulario: FormDa
     return { error: mensajeDeError(error) };
   }
   refrescar(id);
-  return { exito: "Toneladas guardadas." };
+  return { exito: "Kilos guardados." };
 }

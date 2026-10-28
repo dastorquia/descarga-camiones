@@ -2,7 +2,8 @@ import { aDiaHora, desdeDiaHora } from "@/shared/lib/fechas";
 import { aKilos, usaVariasBombas } from "./edicion";
 
 // Cálculos de los reportes (sección 7). Funciones puras: reciben las descargas ya leídas.
-// Las toneladas se suman en kilos enteros; las horas salen solo de tramos cerrados.
+// Las cantidades se suman en kilos enteros; las horas salen solo de tramos cerrados.
+// El rendimiento es en kg/h.
 
 const HORA_MS = 3_600_000;
 
@@ -102,7 +103,7 @@ export type ResumenDescarga = {
   horasTotales: number | null;
   /** Diferencia entre el tiempo total y el de bombeo. */
   horasPausa: number | null;
-  /** Toneladas ÷ horas de bombeo. */
+  /** Kilos ÷ horas de bombeo (kg/h). */
   rendimiento: number | null;
   /** Fin del último tramo: fecha a la que se atribuye la descarga. */
   fin: Date | null;
@@ -120,7 +121,7 @@ export function resumenDescarga(d: DescargaReporte): ResumenDescarga {
     horasBombeo,
     horasTotales,
     horasPausa: horasTotales === null ? null : horasTotales - horasBombeo,
-    rendimiento: d.toneladas && horasBombeo > 0 ? aKilos(d.toneladas) / 1000 / horasBombeo : null,
+    rendimiento: d.toneladas && horasBombeo > 0 ? aKilos(d.toneladas) / horasBombeo : null,
     fin: fin === null ? null : new Date(fin),
     variasBombas: usaVariasBombas(d.tramos),
   };
@@ -138,9 +139,9 @@ export type ToneladasBomba = {
 };
 
 /**
- * Toneladas y rendimiento por bomba, separados por tipo de operación (sección 7 y 13).
- * - Una sola bomba: todas las toneladas y horas de la descarga son de esa bomba (exacto).
- * - Varias bombas: solo cuentan los tramos con toneladas asignadas, con sus horas ("asignación manual").
+ * Kilos y rendimiento (kg/h) por bomba, separados por tipo de operación (sección 7 y 13).
+ * - Una sola bomba: todos los kilos y horas de la descarga son de esa bomba (exacto).
+ * - Varias bombas: solo cuentan los tramos con kilos asignados, con sus horas ("asignación manual").
  * Solo descargas finalizadas (con toneladas).
  */
 export function toneladasPorBomba(descargas: readonly DescargaReporte[]): ToneladasBomba[] {
@@ -170,13 +171,13 @@ export function toneladasPorBomba(descargas: readonly DescargaReporte[]): Tonela
     }
   }
   return [...suma.values()]
-    .map((b) => ({ ...b, rendimiento: b.horas > 0 ? b.kilos / 1000 / b.horas : null }))
+    .map((b) => ({ ...b, rendimiento: b.horas > 0 ? b.kilos / b.horas : null }))
     .sort((a, b) => a.tipo.localeCompare(b.tipo) || a.bombaId - b.bombaId);
 }
 
 export type ToneladasPorClave = { id: number; descarga: number; carga: number };
 
-/** Toneladas (en kilos) por producto, proveedor o tanque, separadas por tipo. Solo finalizadas. */
+/** Kilos por producto, proveedor o tanque, separadas por tipo. Solo finalizadas. */
 export function toneladasPor(
   campo: "productoId" | "proveedorId" | "tanqueId",
   descargas: readonly DescargaReporte[],

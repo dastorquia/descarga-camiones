@@ -7,11 +7,11 @@ import { exigirPermiso } from "@/shared/auth/sesion";
 import { leerUmbrales } from "@/shared/config/leer";
 import { db } from "@/shared/lib/db";
 import { errorAlAbrir, errorAlCerrar, normalizarHojaDeRuta, normalizarPatente, operacionPermitida, type Operacion } from "./dominio/reglas";
-import { advertenciaToneladas, interpretarToneladas } from "./dominio/toneladas";
+import { advertenciaKilos, interpretarKilos } from "./dominio/toneladas";
 import { esquemaCerrarTramo, esquemaFinalizar, esquemaNuevaDescarga, esquemaReanudar } from "./esquemas";
-import { ErrorNegocio, exigirActivos, exigirBombaLibre, instante, leer, mensajeDeError } from "./servidor";
+import { ErrorNegocio, exigirActivos, exigirBombaLibre, exigirBombaSinMantenimiento, instante, leer, mensajeDeError } from "./servidor";
 
-/** `confirmar`: valor de toneladas advertido; reenviarlo igual lo confirma. */
+/** `confirmar`: valor de kilos advertido; reenviarlo igual lo confirma. */
 export type EstadoAccion = { error?: string; advertencia?: string; confirmar?: string };
 
 const NOMBRE_OPERACION: Record<Operacion, string> = { pausar: "pausar", reanudar: "reanudar", finalizar: "finalizar" };
@@ -71,6 +71,7 @@ export async function iniciarDescarga(_previo: EstadoAccion, formulario: FormDat
       if (await tx.descarga.findUnique({ where: { hojaDeRuta: hoja.valor } })) {
         throw new ErrorNegocio(`Ya existe una descarga con la hoja de ruta ${hoja.valor}.`);
       }
+      await exigirBombaSinMantenimiento(tx, datos.bombaId);
       await exigirBombaLibre(tx, datos.bombaId, inicio);
       const creada = await tx.descarga.create({
         data: {
@@ -125,6 +126,7 @@ export async function reanudarDescarga(_previo: EstadoAccion, formulario: FormDa
       const error = errorAlAbrir(inicio, descarga.tramos, new Date());
       if (error) throw new ErrorNegocio(error);
       await exigirActivos(tx, { bombaId: datos.bombaId, operarioId: datos.operarioId });
+      await exigirBombaSinMantenimiento(tx, datos.bombaId);
       await exigirBombaLibre(tx, datos.bombaId, inicio);
       await tx.tramoBombeo.create({
         data: { descargaId: descarga.id, bombaId: datos.bombaId, operarioId: datos.operarioId, inicio },
@@ -144,14 +146,14 @@ export async function finalizarDescarga(_previo: EstadoAccion, formulario: FormD
   try {
     const datos = leer(esquemaFinalizar, formulario);
     id = datos.descargaId;
-    const toneladas = interpretarToneladas(datos.toneladas);
-    if (!toneladas.ok) throw new ErrorNegocio(toneladas.error);
+    const cantidad = interpretarKilos(datos.kilos);
+    if (!cantidad.ok) throw new ErrorNegocio(cantidad.error);
 
     // La advertencia no bloquea: si se reenvía el mismo valor advertido, se acepta.
-    if (datos.confirmado !== datos.toneladas) {
-      const { toneladasMin, toneladasMax } = await leerUmbrales();
-      const advertencia = advertenciaToneladas(toneladas.valor, toneladasMin, toneladasMax);
-      if (advertencia) return { advertencia, confirmar: datos.toneladas };
+    if (datos.confirmado !== datos.kilos) {
+      const { kilosMin, kilosMax } = await leerUmbrales();
+      const advertencia = advertenciaKilos(cantidad.kilos, kilosMin, kilosMax);
+      if (advertencia) return { advertencia, confirmar: datos.kilos };
     }
 
     await db.$transaction(async (tx) => {
@@ -162,7 +164,7 @@ export async function finalizarDescarga(_previo: EstadoAccion, formulario: FormD
       }
       await cambiarEstado(tx, descarga.id, descarga.estado as "EN_CURSO" | "PAUSADA", {
         estado: "FINALIZADA",
-        toneladas: toneladas.valor,
+        toneladas: cantidad.valor,
       });
     });
   } catch (error) {

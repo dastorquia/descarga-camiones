@@ -70,6 +70,23 @@ model Bomba {
   descripcion String?
   activa      Boolean       @default(true)
   tramos      TramoBombeo[]
+  // Relación agregada con MantenimientoBomba: no cambia la tabla Bomba.
+  mantenimientos MantenimientoBomba[]
+}
+
+// Agregado el 29/10/2026 (migración aditiva): períodos en que una bomba estuvo
+// en mantenimiento. Abierto (hasta = null) = la bomba no se puede elegir.
+// La base impide dos mantenimientos abiertos de la misma bomba.
+model MantenimientoBomba {
+  id      Int       @id @default(autoincrement())
+  bombaId Int
+  desde   DateTime  @default(now())
+  hasta   DateTime?
+  motivo  String?
+
+  bomba Bomba @relation(fields: [bombaId], references: [id])
+
+  @@index([bombaId, desde])
 }
 
 model Tanque {

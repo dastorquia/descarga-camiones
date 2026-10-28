@@ -9,7 +9,8 @@ import { useAhora } from "@/shared/ui/reloj";
 import { TiempoDesde } from "@/shared/ui/TiempoDesde";
 import { formatearHoras } from "../dominio/horas";
 import { tramoEnAlerta } from "../dominio/tablero";
-import { formatearToneladas } from "../dominio/toneladas";
+import { formatearKilos } from "../dominio/toneladas";
+import { GraficosDelMes } from "./Graficos";
 import type { DatosTablero, TarjetaTablero } from "./tipos";
 
 const ACTUALIZAR_CADA_MS = 20_000;
@@ -95,7 +96,7 @@ export function TableroSupervisor({ inicial }: { inicial: DatosTablero }) {
           {datos.finalizadas.map((t) => (
             <Tarjeta key={t.id} t={t}>
               <span>
-                {formatearToneladas(t.toneladas)} · {formatearHoras(t.horasBomba)} de bomba
+                {formatearKilos(t.toneladas)} · {formatearHoras(t.horasBomba)} de bomba
               </span>
               {t.finalizadaA && <span className="text-sm text-slate-600">Terminó {formatearHora(new Date(t.finalizadaA))}</span>}
             </Tarjeta>
@@ -103,67 +104,40 @@ export function TableroSupervisor({ inicial }: { inicial: DatosTablero }) {
         </Columna>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel titulo="Bombas">
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {datos.bombas.map((b) => {
-              const ocupada = b.ocupadaPor;
-              const roja = ocupada !== null && ahora !== null && tramoEnAlerta(new Date(ocupada.desde), new Date(ahora), datos.horasAlerta);
-              return (
-                <li
-                  key={b.id}
-                  className={`flex flex-col rounded-xl border-2 px-3 py-2 ${
-                    roja ? "border-red-400 bg-red-50" : ocupada ? "border-green-300 bg-green-50" : "border-slate-200 bg-white"
-                  }`}
-                >
-                  <span className="font-bold">{b.etiqueta}</span>
-                  {ocupada ? (
-                    <Link href={`/colaborador/descargas/${ocupada.descargaId}`} className="text-sm hover:underline">
-                      Ocupada · {ocupada.hojaDeRuta} · hace <TiempoDesde desde={ocupada.desde} />
-                    </Link>
-                  ) : (
-                    <span className="text-sm text-slate-600">Libre</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </Panel>
-        <Panel titulo="Tanques">
-          <ul className="flex flex-wrap gap-2">
-            {datos.tanques.map((t) => (
-              <li
-                key={t.id}
-                title={t.descargas.map((d) => d.hojaDeRuta).join(", ") || "Sin camiones"}
-                className={`rounded-lg border-2 px-2 py-1 text-sm ${
-                  t.descargas.length ? "border-blue-300 bg-blue-50 font-semibold" : "border-slate-200 bg-white text-slate-500"
-                }`}
-              >
-                {t.codigo}
-                {t.descargas.length > 0 && ` · ${t.descargas.length}`}
+      <Panel titulo="Bombas">
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {datos.bombas.map((b) => {
+            const ocupada = b.ocupadaPor;
+            const roja = ocupada !== null && ahora !== null && tramoEnAlerta(new Date(ocupada.desde), new Date(ahora), datos.horasAlerta);
+            const color = roja
+              ? "border-red-400 bg-red-50"
+              : b.mantenimiento
+                ? "border-orange-400 bg-orange-50"
+                : ocupada
+                  ? "border-green-300 bg-green-50"
+                  : "border-slate-200 bg-white";
+            return (
+              <li key={b.id} className={`flex flex-col rounded-xl border-2 px-3 py-2 ${color}`}>
+                <span className="font-bold">{b.etiqueta}</span>
+                {b.mantenimiento ? (
+                  <span className="text-sm font-semibold text-orange-900">
+                    En mantenimiento desde {formatearFechaHora(new Date(b.mantenimiento.desde))}
+                    {b.mantenimiento.motivo && <span className="block font-normal">{b.mantenimiento.motivo}</span>}
+                  </span>
+                ) : ocupada ? (
+                  <Link href={`/colaborador/descargas/${ocupada.descargaId}`} className="text-sm hover:underline">
+                    Ocupada · {ocupada.hojaDeRuta} · hace <TiempoDesde desde={ocupada.desde} />
+                  </Link>
+                ) : (
+                  <span className="text-sm text-slate-600">Libre</span>
+                )}
               </li>
-            ))}
-          </ul>
-          <ul className="mt-3 flex flex-col gap-1 text-sm">
-            {datos.tanques
-              .filter((t) => t.descargas.length > 0)
-              .map((t) => (
-                <li key={t.id}>
-                  <strong>{t.codigo}:</strong>{" "}
-                  {t.descargas.map((d, i) => (
-                    <span key={d.id}>
-                      {i > 0 && ", "}
-                      <Link href={`/colaborador/descargas/${d.id}`} className="hover:underline">
-                        {d.hojaDeRuta}
-                      </Link>{" "}
-                      ({d.estado === "PAUSADA" ? "pausada" : "en curso"})
-                    </span>
-                  ))}
-                </li>
-              ))}
-          </ul>
-        </Panel>
-      </div>
+            );
+          })}
+        </ul>
+      </Panel>
+
+      <GraficosDelMes datos={datos.graficos} />
     </div>
   );
 }

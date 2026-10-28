@@ -23,7 +23,7 @@ type Props = {
   ultimoOperarioId: number | null;
   bombas: OpcionBomba[];
   operarios: Opcion[];
-  ocupadas: Record<number, string>;
+  noDisponibles: Record<number, string>;
 };
 
 type Ventana = "pausar" | "reanudar" | "finalizar" | null;
@@ -142,11 +142,11 @@ function FormularioPausar(props: PropsFormulario) {
 
 function FormularioReanudar(props: PropsFormulario & { dia: string }) {
   const { estado, alEnviar, enviando } = useFormulario<EstadoAccion>(reanudarDescarga, {});
-  const inicial = props.ultimaBombaId && !props.ocupadas[props.ultimaBombaId] ? String(props.ultimaBombaId) : "";
+  const inicial = props.ultimaBombaId && !props.noDisponibles[props.ultimaBombaId] ? String(props.ultimaBombaId) : "";
   return (
     <form onSubmit={alEnviar} className="flex flex-col gap-5">
       <input type="hidden" name="descargaId" value={props.descargaId} />
-      <SelectorBomba bombas={props.bombas} ocupadas={props.ocupadas} inicial={inicial} />
+      <SelectorBomba bombas={props.bombas} noDisponibles={props.noDisponibles} inicial={inicial} />
       <Campo etiqueta="Operario">
         <Desplegable
           nombre="operarioId"
@@ -163,14 +163,14 @@ function FormularioReanudar(props: PropsFormulario & { dia: string }) {
 
 function FormularioFinalizar(props: PropsFormulario) {
   const { estado, alEnviar, enviando } = useFormulario<EstadoAccion>(finalizarDescarga, {});
-  const [toneladas, setToneladas] = useState("");
+  const [kilos, setKilos] = useState("");
   // Si el servidor advirtió que el valor es raro, reenviar ese mismo valor lo confirma.
-  const confirmar = estado.confirmar !== undefined && estado.confirmar === toneladas;
+  const confirmar = estado.confirmar !== undefined && estado.confirmar === kilos;
   const cierraTramo = props.estado === "EN_CURSO";
   return (
     <form onSubmit={alEnviar} className="flex flex-col gap-5">
       <input type="hidden" name="descargaId" value={props.descargaId} />
-      <input type="hidden" name="confirmado" value={confirmar ? toneladas : ""} />
+      <input type="hidden" name="confirmado" value={confirmar ? kilos : ""} />
       {cierraTramo ? (
         <DiaHora etiqueta="Fin del tramo" dia={props.diaInicioTramoAbierto ?? ""} hora={props.hora} />
       ) : (
@@ -179,19 +179,19 @@ function FormularioFinalizar(props: PropsFormulario) {
           <input type="hidden" name="hora" value="" />
         </>
       )}
-      <Campo etiqueta="Toneladas totales" ayuda="Usá coma para los decimales, por ejemplo 28,450.">
+      <Campo etiqueta="Kilos totales" ayuda="Solo números, sin decimales. Por ejemplo 28000.">
         <div className="relative">
           <Texto
-            name="toneladas"
-            inputMode="decimal"
+            name="kilos"
+            inputMode="numeric"
             autoComplete="off"
-            placeholder="28,000"
+            placeholder="28000"
             required
-            value={toneladas}
-            onChange={(e) => setToneladas(e.target.value)}
+            value={kilos}
+            onChange={(e) => setKilos(e.target.value)}
           />
           <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-lg font-semibold text-slate-600">
-            t
+            kg
           </span>
         </div>
       </Campo>

@@ -13,8 +13,8 @@ export type EstadoUmbrales = { error?: string; exito?: string };
 export async function guardarUmbrales(_previo: EstadoUmbrales, formulario: FormData): Promise<EstadoUmbrales> {
   const { perfil } = await exigirPermiso("configuracion.administrar");
   const resultado = validarUmbrales({
-    toneladasMin: String(formulario.get("toneladasMin") ?? ""),
-    toneladasMax: String(formulario.get("toneladasMax") ?? ""),
+    kilosMin: String(formulario.get("kilosMin") ?? ""),
+    kilosMax: String(formulario.get("kilosMax") ?? ""),
     horasAlertaTramoAbierto: String(formulario.get("horasAlertaTramoAbierto") ?? ""),
   });
   if (!resultado.ok) return { error: resultado.error };
@@ -31,7 +31,11 @@ export async function guardarUmbrales(_previo: EstadoUmbrales, formulario: FormD
       entidadId: 0,
       accion: "EDITAR",
       antes,
-      despues: Object.fromEntries(Object.entries(resultado.valores).map(([k, v]) => [k, Number(v)])),
+      despues: {
+        kilosMin: Math.round(Number(resultado.valores.toneladasMin) * 1000),
+        kilosMax: Math.round(Number(resultado.valores.toneladasMax) * 1000),
+        horasAlertaTramoAbierto: Number(resultado.valores.horasAlertaTramoAbierto),
+      },
     });
   });
   revalidatePath("/supervisor", "layout");

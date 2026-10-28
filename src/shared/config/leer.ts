@@ -2,9 +2,13 @@ import "server-only";
 import { db } from "@/shared/lib/db";
 import { CLAVES_CONFIG, VALORES_INICIALES } from "./claves";
 
-export type Umbrales = { toneladasMin: number; toneladasMax: number; horasAlertaTramoAbierto: number };
+/** Umbrales en las unidades de pantalla: kilos y horas. */
+export type Umbrales = { kilosMin: number; kilosMax: number; horasAlertaTramoAbierto: number };
 
-/** Umbrales configurables; si falta alguno, se usa el valor inicial. */
+/**
+ * Umbrales configurables; si falta alguno, se usa el valor inicial.
+ * El rango se guarda en toneladas (claves toneladasMin/Max) y se devuelve en kilos.
+ */
 export async function leerUmbrales(): Promise<Umbrales> {
   const filas = await db.config.findMany({
     where: {
@@ -16,8 +20,8 @@ export async function leerUmbrales(): Promise<Umbrales> {
   const valor = (clave: keyof typeof VALORES_INICIALES) =>
     Number(filas.find((f) => f.clave === CLAVES_CONFIG[clave])?.valor ?? VALORES_INICIALES[clave]);
   return {
-    toneladasMin: valor("toneladasMin"),
-    toneladasMax: valor("toneladasMax"),
+    kilosMin: Math.round(valor("toneladasMin") * 1000),
+    kilosMax: Math.round(valor("toneladasMax") * 1000),
     horasAlertaTramoAbierto: valor("horasAlertaTramoAbierto"),
   };
 }

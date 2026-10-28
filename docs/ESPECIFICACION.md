@@ -319,7 +319,14 @@ Estas decisiones precisan o corrigen las secciones anteriores. Ante una contradi
   - Toneladas por bomba con varias bombas: cuentan los tramos con toneladas asignadas, aunque no estén todos asignados, y se marcan "asignación manual".
   - Exportación: Excel con todos los reportes (una hoja por reporte) y CSV por reporte (separador ";" y coma decimal, para Excel en español).
   - Vistas SQL `v_tramos_horas` y `v_descargas_resumen`, documentadas en `docs/VISTAS_SQL.md`.
-- **Inicio del Colaborador = tablero por sector:** una tarjeta por sector (Descarga 1, 2 y 3) con sus camiones, la bomba en uso y hace cuánto bombea (solo para mostrar, nunca para estadísticas). Cada sector tiene "+ Agregar", que ofrece sus bombas. Debajo, las "Finalizadas hoy". Se actualiza solo cada 30 segundos.
+- **Cambios del 29/10/2026 (después del primer despliegue):**
+  - **Kilos en lugar de toneladas** en toda la app (formularios, pantallas, reportes, exportaciones y vistas SQL). Se cargan kilos enteros, por ejemplo 28000. En la base se sigue guardando `Decimal(10,3)` en toneladas, que es la misma precisión. El rendimiento es en kg/h. El rango de advertencia se configura en kilos (por defecto 3.000 a 40.000 kg).
+  - **Sin valor por defecto al finalizar:** el campo de kilos arranca vacío, con "28000" solo como ejemplo en gris.
+  - **Patente camión/acoplado:** por ejemplo AB123CD/AC456EF, hasta 15 caracteres. La barra se agrega sola al completar la patente del camión. El acoplado es opcional.
+  - **Inicio del Colaborador en formato de tabla:** tablas de en curso y pausadas, de bombas y de finalizadas de hoy.
+  - **Bombas en mantenimiento:** el Colaborador y el Supervisor pueden poner y sacar una bomba de mantenimiento, con un motivo opcional. No se puede poner en mantenimiento una bomba en uso. Mientras está en mantenimiento no se puede elegir para iniciar ni reanudar. Se guarda en la tabla `MantenimientoBomba`, con fechas, y queda en la auditoría. Los tableros la muestran "En mantenimiento".
+  - **Tablero del Supervisor:** el panel de tanques se reemplaza por dos gráficos de barras del mes en curso: kilos por bomba (descarga y carga) y horas de uso por bomba. Se reinician cada mes.
+- **Inicio del Colaborador = tablero por sector** (reemplazado por el formato tabla del 29/10/2026): una tarjeta por sector (Descarga 1, 2 y 3) con sus camiones, la bomba en uso y hace cuánto bombea (solo para mostrar, nunca para estadísticas). Cada sector tiene "+ Agregar", que ofrece sus bombas. Debajo, las "Finalizadas hoy". Se actualiza solo cada 30 segundos.
 - **Sector de bomba:** se guarda en la descripción de la bomba ("Descarga 1", "Descarga 2" o "Descarga 3"). En pantalla se muestra abreviado (D1, D2 o D3) en letra chica.
 - **Sesión:** la cookie se firma con la variable `SESSION_SECRET`, que va en `.env` además de `DATABASE_URL` y `DIRECT_URL`.
 - **Prisma 7:** la conexión se configura en `prisma.config.ts` y en el cliente de la app, no en `schema.prisma`. Los modelos son los de la sección 4.

@@ -6,16 +6,16 @@ import { etiquetaBomba, nombreBomba } from "@/shared/catalogos/sector";
 import { Desplegable } from "@/shared/ui/campos";
 
 /**
- * Desplegable de bombas: "D1-BCI010". Las bombas en uso aparecen deshabilitadas.
+ * Desplegable de bombas: "D1-BCI010". Las bombas en uso o en mantenimiento aparecen deshabilitadas.
  * Al elegir una, se muestra en negrita "Descarga 1 · Bomba BCI010".
  */
 export function SelectorBomba({
   bombas,
-  ocupadas,
+  noDisponibles,
   inicial = "",
 }: {
   bombas: OpcionBomba[];
-  ocupadas: Record<number, string>;
+  noDisponibles: Record<number, string>;
   inicial?: string;
 }) {
   const [bombaId, setBombaId] = useState(inicial);
@@ -29,9 +29,9 @@ export function SelectorBomba({
         valor={bombaId}
         alCambiar={setBombaId}
         opciones={bombas.map((b) => {
-          const enUso = ocupadas[b.id];
+          const motivo = noDisponibles[b.id];
           const texto = etiquetaBomba(b.codigo, b.sector);
-          return { valor: b.id, texto: enUso ? `${texto} — en uso (${enUso})` : texto, deshabilitada: !!enUso };
+          return { valor: b.id, texto: motivo ? `${texto} — ${motivo}` : texto, deshabilitada: !!motivo };
         })}
       />
       {elegida && <span className="text-base font-bold text-slate-800">{nombreBomba(elegida.codigo, elegida.sector)}</span>}

@@ -14,7 +14,7 @@ describe("describir cambios de la auditoría", () => {
     );
     expect(cambios).toEqual([
       { campo: "Fin", antes: "27/10/2026 19:30", despues: "27/10/2026 19:45" },
-      { campo: "Toneladas", antes: "28,450 t", despues: "28,450 t" },
+      { campo: "Kilos", antes: "28.450 kg", despues: "28.450 kg" },
     ]);
   });
 
@@ -38,7 +38,7 @@ describe("describir cambios de la auditoría", () => {
 
   it("resume las toneladas por tramo", () => {
     const [cambio] = describirCambios({ tramos: [{ id: 1, toneladas: null }] }, { tramos: [{ id: 1, toneladas: "15.000" }] });
-    expect(cambio).toEqual({ campo: "Toneladas por tramo", antes: "tramo #1: —", despues: "tramo #1: 15,000 t" });
+    expect(cambio).toEqual({ campo: "Kilos por tramo", antes: "tramo #1: —", despues: "tramo #1: 15.000 kg" });
   });
 
   it("un id sin nombre conocido se muestra con #", () => {

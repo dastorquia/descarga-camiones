@@ -22,7 +22,7 @@ const idPositivo = (v: string | null) => (v && /^\d+$/.test(v) && Number(v) > 0 
 export function leerFiltros(p: Parametros): Filtros {
   const estado = uno(p.estado);
   const tipo = uno(p.tipo);
-  const texto = uno(p.texto)?.toUpperCase().replace(/[^A-Z0-9]/g, "") || null;
+  const texto = uno(p.texto)?.toUpperCase().replace(/[^A-Z0-9/]/g, "") || null;
   return {
     desde: dia(uno(p.desde)),
     hasta: dia(uno(p.hasta)),

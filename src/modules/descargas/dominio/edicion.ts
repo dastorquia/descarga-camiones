@@ -46,7 +46,7 @@ export function desdeKilos(kilos: number): string {
 export function errorEnAsignacion(total: string, asignadas: readonly (string | null)[]): string | null {
   const suma = asignadas.reduce((s, v) => s + (v ? aKilos(v) : 0), 0);
   if (suma > aKilos(total)) {
-    return `Lo asignado a los tramos (${desdeKilos(suma).replace(".", ",")} t) supera el total de la descarga (${total.replace(".", ",")} t).`;
+    return `Lo asignado a los tramos (${suma.toLocaleString("es-AR")} kg) supera el total de la descarga (${aKilos(total).toLocaleString("es-AR")} kg).`;
   }
   return null;
 }

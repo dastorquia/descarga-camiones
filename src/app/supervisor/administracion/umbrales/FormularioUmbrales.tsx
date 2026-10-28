@@ -6,22 +6,20 @@ import { Campo, Texto } from "@/shared/ui/campos";
 import { botonPrincipal, mensajeError, mensajeExito } from "@/shared/ui/estilos";
 import { useFormulario } from "@/shared/ui/useFormulario";
 
-const conComa = (n: number) => String(n).replace(".", ",");
-
 export function FormularioUmbrales({ actuales }: { actuales: Umbrales }) {
   const { estado, alEnviar, enviando } = useFormulario<EstadoUmbrales>(guardarUmbrales, {});
   return (
     <form onSubmit={alEnviar} className="flex flex-col gap-5">
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-base font-semibold">
-          Rango habitual de toneladas por camión. Fuera de este rango la app advierte, pero deja seguir.
+          Rango habitual de kilos por camión. Fuera de este rango la app advierte, pero deja seguir.
         </legend>
         <div className="grid grid-cols-2 gap-3">
-          <Campo etiqueta="Mínimo (t)">
-            <Texto name="toneladasMin" inputMode="decimal" defaultValue={conComa(actuales.toneladasMin)} required />
+          <Campo etiqueta="Mínimo (kg)">
+            <Texto name="kilosMin" inputMode="numeric" defaultValue={actuales.kilosMin} required />
           </Campo>
-          <Campo etiqueta="Máximo (t)">
-            <Texto name="toneladasMax" inputMode="decimal" defaultValue={conComa(actuales.toneladasMax)} required />
+          <Campo etiqueta="Máximo (kg)">
+            <Texto name="kilosMax" inputMode="numeric" defaultValue={actuales.kilosMax} required />
           </Campo>
         </div>
       </fieldset>

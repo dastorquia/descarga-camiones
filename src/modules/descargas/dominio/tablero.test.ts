@@ -26,6 +26,15 @@ describe("estado de bombas", () => {
     const estado = estadoBombas(bombas, [{ bombaId: 2, inicio: desde, descarga: { id: 7, hojaDeRuta: "HR7" } }]);
     expect(estado[0]!.ocupadaPor).toBeNull();
     expect(estado[1]!.ocupadaPor).toEqual({ descargaId: 7, hojaDeRuta: "HR7", desde });
+    expect(estado[0]!.mantenimiento).toBeNull();
+  });
+
+  it("indica las bombas en mantenimiento", () => {
+    const bombas = [{ id: 1, codigo: "BCI010", sector: "Descarga 1" }];
+    const desde = new Date("2026-10-29T10:00:00Z");
+    const [b] = estadoBombas(bombas, [], [{ bombaId: 1, desde, motivo: "Cambio de sello" }]);
+    expect(b!.mantenimiento).toEqual({ desde, motivo: "Cambio de sello" });
+    expect(b!.ocupadaPor).toBeNull();
   });
 });
 

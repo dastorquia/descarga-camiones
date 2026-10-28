@@ -18,7 +18,7 @@ export default async function Administracion() {
         </Link>
       ))}
       <Link href="/supervisor/administracion/umbrales" className={botonSecundario}>
-        Umbrales (toneladas y alertas)
+        Umbrales (kilos y alertas)
       </Link>
       <Link href="/supervisor/cambiar-pin" className={botonSecundario}>
         Cambiar PIN

@@ -61,6 +61,8 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - **Una descarga finalizada no se reabre.**
 - **Validaciones:**
   - la hoja de ruta es única, solo letras y números, y se guarda en mayúsculas;
+  - la patente es camión/acoplado (AB123CD/AC456EF, hasta 15), con la barra agregada sola al escribir;
+  - una bomba en mantenimiento (tabla `MantenimientoBomba`, abierto = `hasta` null) no se puede elegir para iniciar ni reanudar;
   - el fin debe ser posterior al inicio;
   - no se aceptan horas futuras (5 minutos de tolerancia);
   - un tramo nuevo empieza después del fin del anterior de la misma descarga;
@@ -69,11 +71,11 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - solo se eligen catálogos **activos**;
   - no se puede finalizar sin toneladas;
   - el tanque ocupado **no** se valida.
-- **Toneladas:**
-  - tipo `Decimal(10,3)`, nunca `Float`;
-  - se cargan solo al finalizar; antes se muestra "—" (nunca 0);
-  - deben ser mayores a 0, con hasta 3 decimales y coma decimal, y siempre se muestran con la unidad "t";
-  - fuera del rango configurable (3 a 40 t), la app muestra una advertencia que no bloquea;
+- **Cantidades (en KILOS desde el 29/10/2026):**
+  - en la base: `Decimal(10,3)` en toneladas (columna `toneladas`), nunca `Float`; en pantalla, formularios, reportes y vistas: kilos enteros ("28.000 kg"), rendimiento en kg/h;
+  - conversiones en `src/modules/descargas/dominio/toneladas.ts` (`interpretarKilos`, `formatearKilos`, `aKilosDesdeBase`);
+  - se cargan solo al finalizar, sin valor por defecto; antes se muestra "—" (nunca 0);
+  - fuera del rango configurable (3.000 a 40.000 kg) se muestra una advertencia que no bloquea;
   - por tramo, solo las asigna el Supervisor: la suma debe ser menor o igual al total y se rotula "asignación manual".
 - **Perfiles:**
   - Colaborador: entra sin clave. Puede crear, pausar, reanudar y finalizar, y editar datos y tramos mientras la descarga no esté finalizada.
@@ -116,6 +118,7 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - Vistas SQL en la migración `20261028200000_vistas_reportes`, documentadas en `docs/VISTAS_SQL.md`. Si cambia una tabla que usan, actualizar las vistas en una migración nueva.
 - **PWA y despliegue (Etapa 7):** manifiesto en `src/app/manifest.ts`, íconos en `public/`. Vercel en `gru1` (`vercel.json`); `npm run vercel-build` aplica migraciones solo en producción. Operación y backups: `docs/OPERACION.md`.
 - **Pruebas de integración:** `npm run test:integracion` (contra la base real, en transacciones que se deshacen; crean sus propias bombas para no chocar con datos reales).
+- **Base de producción:** desde el despliegue, la base de Neon `main` es producción. Las migraciones se aplican solas al publicar en Vercel. **No correr migraciones, seeds ni datos de prueba contra producción:** usar una rama de Neon de desarrollo en el `.env` local.
 - **Servidor de desarrollo:** si una acción recién creada falla con "undefined" en el servidor, reiniciar `npm run dev` (Turbopack a veces conserva una versión vieja).
 - **Antes de cada commit:** correr `npm run typecheck`, `npm run lint` y `npm test`.
 

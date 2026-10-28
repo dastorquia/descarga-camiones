@@ -1,7 +1,9 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/shared/lib/db";
+import { catalogosActivos } from "@/shared/catalogos/datos";
 import type { Filtros } from "./dominio/filtros";
+import { estadoBombas } from "./dominio/tablero";
 import { aDiaHora, desdeDiaHora } from "@/shared/lib/fechas";
 
 // Lecturas de descargas para las pantallas.
@@ -84,11 +86,33 @@ export async function detalleDescarga(id: number) {
 
 export type DescargaConDetalle = NonNullable<Awaited<ReturnType<typeof detalleDescarga>>>;
 
-/** Bombas con un tramo abierto, y en qué descarga. */
-export async function bombasOcupadas(): Promise<Map<number, string>> {
-  const abiertos = await db.tramoBombeo.findMany({
-    where: { fin: null },
-    select: { bombaId: true, descarga: { select: { hojaDeRuta: true } } },
-  });
-  return new Map(abiertos.map((t) => [t.bombaId, t.descarga.hojaDeRuta]));
+/**
+ * Bombas que no se pueden elegir ahora, con el motivo para mostrar:
+ * "en uso (HR123)" si tienen un tramo abierto, o "en mantenimiento".
+ * `excluirDescargaId`: al editar una descarga, su propio tramo abierto no cuenta.
+ */
+export async function bombasNoDisponibles(excluirDescargaId?: number): Promise<Map<number, string>> {
+  const [abiertos, mantenimientos] = await Promise.all([
+    db.tramoBombeo.findMany({
+      where: { fin: null, ...(excluirDescargaId ? { descargaId: { not: excluirDescargaId } } : {}) },
+      select: { bombaId: true, descarga: { select: { hojaDeRuta: true } } },
+    }),
+    db.mantenimientoBomba.findMany({ where: { hasta: null }, select: { bombaId: true } }),
+  ]);
+  const motivos = new Map(abiertos.map((t) => [t.bombaId, `en uso (${t.descarga.hojaDeRuta})`]));
+  for (const m of mantenimientos) motivos.set(m.bombaId, "en mantenimiento");
+  return motivos;
+}
+
+/** Estado actual de cada bomba activa: libre, en uso (por qué descarga) o en mantenimiento. */
+export async function estadoBombasActual() {
+  const [catalogos, abiertos, mantenimientos] = await Promise.all([
+    catalogosActivos(),
+    db.tramoBombeo.findMany({
+      where: { fin: null },
+      select: { bombaId: true, inicio: true, descarga: { select: { id: true, hojaDeRuta: true } } },
+    }),
+    db.mantenimientoBomba.findMany({ where: { hasta: null }, select: { bombaId: true, desde: true, motivo: true } }),
+  ]);
+  return estadoBombas(catalogos.bombas, abiertos, mantenimientos);
 }

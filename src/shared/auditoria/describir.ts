@@ -1,3 +1,4 @@
+import { aKilosDesdeBase } from "@/modules/descargas/dominio/toneladas";
 import { formatearFechaHora } from "@/shared/lib/fechas";
 
 // Traduce los valores guardados en AuditLog (antes / después) a texto legible.
@@ -20,15 +21,19 @@ const ETIQUETAS: Record<string, string> = {
   operarioId: "Operario",
   inicio: "Inicio",
   fin: "Fin",
-  toneladas: "Toneladas",
-  tramos: "Toneladas por tramo",
+  toneladas: "Kilos",
+  tramos: "Kilos por tramo",
   valor: "Nombre o código",
   sector: "Sector",
   activo: "Activo",
+  enMantenimiento: "En mantenimiento",
+  motivo: "Motivo",
   pinCambiado: "PIN cambiado",
   pinPorDefecto: "PIN por defecto",
-  toneladasMin: "Toneladas mínimas",
-  toneladasMax: "Toneladas máximas",
+  toneladasMin: "Kilos mínimos",
+  toneladasMax: "Kilos máximos",
+  kilosMin: "Kilos mínimos",
+  kilosMax: "Kilos máximos",
   horasAlertaTramoAbierto: "Horas de alerta",
 };
 
@@ -45,17 +50,20 @@ const OCULTOS = new Set(["descargaId"]);
 
 const ES_FECHA_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 
-function comoToneladas(v: unknown): string {
-  return v === null || v === undefined ? "—" : `${Number(v).toLocaleString("es-AR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} t`;
+/** Las cantidades se guardan en toneladas con 3 decimales; se muestran en kilos. */
+function comoKilos(v: unknown): string {
+  return v === null || v === undefined ? "—" : `${aKilosDesdeBase(String(v)).toLocaleString("es-AR")} kg`;
 }
 
 function formatear(campo: string, valor: unknown, nombres: Nombres): string {
   if (valor === null || valor === undefined || valor === "") return "—";
   if (campo in nombres && typeof valor === "number") return nombres[campo as keyof Nombres]?.[valor] ?? `#${valor}`;
-  if (campo === "toneladas") return comoToneladas(valor);
+  if (campo === "toneladas") return comoKilos(valor);
   if (campo === "tramos" && Array.isArray(valor)) {
-    return valor.map((t: { id?: number; toneladas?: unknown }) => `tramo #${t.id}: ${comoToneladas(t.toneladas)}`).join("; ");
+    return valor.map((t: { id?: number; toneladas?: unknown }) => `tramo #${t.id}: ${comoKilos(t.toneladas)}`).join("; ");
   }
+  if ((campo === "kilosMin" || campo === "kilosMax") && typeof valor === "number") return `${valor.toLocaleString("es-AR")} kg`;
+  if ((campo === "toneladasMin" || campo === "toneladasMax") && typeof valor === "number") return `${(valor * 1000).toLocaleString("es-AR")} kg`;
   if (typeof valor === "boolean") return valor ? "Sí" : "No";
   if (typeof valor === "number") return valor.toLocaleString("es-AR");
   if (typeof valor === "string") {

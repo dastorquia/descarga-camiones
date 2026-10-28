@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { validarUmbrales } from "./umbrales";
 
-const base = { toneladasMin: "3", toneladasMax: "40", horasAlertaTramoAbierto: "12" };
+const base = { kilosMin: "3000", kilosMax: "40000", horasAlertaTramoAbierto: "12" };
 
 describe("umbrales", () => {
-  it("acepta los valores iniciales y coma decimal", () => {
-    expect(validarUmbrales(base)).toEqual({ ok: true, valores: base });
-    expect(validarUmbrales({ ...base, toneladasMin: "2,5" })).toEqual({ ok: true, valores: { ...base, toneladasMin: "2.5" } });
+  it("acepta los valores iniciales (en kilos) y los guarda en toneladas", () => {
+    expect(validarUmbrales(base)).toEqual({ ok: true, valores: { toneladasMin: "3", toneladasMax: "40", horasAlertaTramoAbierto: "12" } });
+    expect(validarUmbrales({ ...base, kilosMin: "2.500" })).toMatchObject({ ok: true, valores: { toneladasMin: "2.5" } });
   });
 
   it("el mínimo tiene que ser menor que el máximo", () => {
-    expect(validarUmbrales({ ...base, toneladasMin: "40" }).ok).toBe(false);
+    expect(validarUmbrales({ ...base, kilosMin: "40000" }).ok).toBe(false);
   });
 
-  it("rechaza punto decimal, cero y texto", () => {
-    for (const v of ["2.5", "0", "abc", ""]) expect(validarUmbrales({ ...base, toneladasMin: v }).ok, v).toBe(false);
+  it("rechaza decimales, cero y texto", () => {
+    for (const v of ["2500,5", "0", "abc", ""]) expect(validarUmbrales({ ...base, kilosMin: v }).ok, v).toBe(false);
   });
 
   it("las horas de alerta son enteras entre 1 y 168", () => {

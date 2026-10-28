@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { AccionesDescarga } from "@/modules/descargas/componentes/AccionesDescarga";
 import { EtiquetaEstado, EtiquetaTipo } from "@/modules/descargas/componentes/EtiquetaEstado";
-import { bombasOcupadas, detalleDescarga } from "@/modules/descargas/datos";
+import { bombasNoDisponibles, detalleDescarga } from "@/modules/descargas/datos";
 import { formatearHoras, horasBomba, horasTramo } from "@/modules/descargas/dominio/horas";
-import { formatearToneladas } from "@/modules/descargas/dominio/toneladas";
+import { formatearKilos } from "@/modules/descargas/dominio/toneladas";
 import { inicioDe, puede } from "@/shared/auth/perfiles";
 import { botonSecundario } from "@/shared/ui/estilos";
 import { exigirPermiso } from "@/shared/auth/sesion";
@@ -20,7 +20,7 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 
-  const [descarga, catalogos, ocupadas] = await Promise.all([detalleDescarga(id), catalogosActivos(), bombasOcupadas()]);
+  const [descarga, catalogos, noDisponibles] = await Promise.all([detalleDescarga(id), catalogosActivos(), bombasNoDisponibles()]);
   if (!descarga) notFound();
 
   const esCarga = descarga.tipo === "CARGA";
@@ -51,7 +51,7 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
           ultimoOperarioId={ultimo?.operario.id ?? null}
           bombas={catalogos.bombas}
           operarios={catalogos.operarios}
-          ocupadas={Object.fromEntries(ocupadas)}
+          noDisponibles={Object.fromEntries(noDisponibles)}
         />
 
         {(descarga.estado !== "FINALIZADA" || puede(sesion.perfil, "descargas.editarFinalizadas")) && (
@@ -72,7 +72,7 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
           <Dato nombre={esCarga ? "Tanque de origen" : "Tanque de destino"}>{descarga.tanque.codigo}</Dato>
           <Dato nombre="Operario de inicio">{primero?.operario.nombre ?? "—"}</Dato>
           <Dato nombre="Horas de bomba">{formatearHoras(horasBomba(descarga.tramos))}</Dato>
-          <Dato nombre="Toneladas">{formatearToneladas(descarga.toneladas)}</Dato>
+          <Dato nombre="Kilos">{formatearKilos(descarga.toneladas)}</Dato>
           {descarga.observaciones && <Dato nombre="Observaciones">{descarga.observaciones}</Dato>}
         </dl>
 
@@ -98,7 +98,7 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
                 </span>
                 {t.toneladas && (
                   <span className="text-sm">
-                    {formatearToneladas(t.toneladas)} <span className="text-amber-800">· asignación manual</span>
+                    {formatearKilos(t.toneladas)} <span className="text-amber-800">· asignación manual</span>
                   </span>
                 )}
               </div>

@@ -1,6 +1,6 @@
 // Tabla genérica de un reporte: la misma sirve para la pantalla, el CSV y el Excel.
 
-export type TipoColumna = "texto" | "horas" | "toneladas" | "rendimiento" | "entero";
+export type TipoColumna = "texto" | "horas" | "kilos" | "rendimiento" | "entero";
 
 export type Columna = { titulo: string; tipo: TipoColumna };
 
@@ -16,8 +16,8 @@ export type Tabla = {
   filas: Valor[][];
 };
 
-const UNIDAD: Partial<Record<TipoColumna, string>> = { horas: "h", toneladas: "t", rendimiento: "t/h" };
-const DECIMALES: Record<TipoColumna, number> = { texto: 0, horas: 2, toneladas: 3, rendimiento: 2, entero: 0 };
+const UNIDAD: Partial<Record<TipoColumna, string>> = { horas: "h", kilos: "kg", rendimiento: "kg/h" };
+const DECIMALES: Record<TipoColumna, number> = { texto: 0, horas: 2, kilos: 0, rendimiento: 0, entero: 0 };
 
 /** Valor para mostrar en pantalla: "6,75 h", "28,450 t", "—". */
 export function mostrar(valor: Valor, tipo: TipoColumna): string {

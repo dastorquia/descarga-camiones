@@ -18,6 +18,8 @@ export const PERMISOS = {
   "descargas.editarFinalizadas": SOLO_SUPERVISOR,
   "tramos.asignarToneladas": SOLO_SUPERVISOR,
   "tablero.ver": AMBOS,
+  // Poner o sacar una bomba de mantenimiento (pedido del 29/10/2026).
+  "bombas.mantenimiento": AMBOS,
   "tablero.supervisor": SOLO_SUPERVISOR,
   "catalogos.administrar": SOLO_SUPERVISOR,
   "configuracion.administrar": SOLO_SUPERVISOR,

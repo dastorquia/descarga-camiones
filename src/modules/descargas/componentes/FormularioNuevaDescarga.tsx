@@ -8,6 +8,7 @@ import { AreaTexto, Campo, DiaHora, Desplegable } from "@/shared/ui/campos";
 import { botonPrincipal, botonSecundario, mensajeError } from "@/shared/ui/estilos";
 import { useFormulario } from "@/shared/ui/useFormulario";
 import { iniciarDescarga, type EstadoAccion } from "../acciones";
+import { CampoPatente } from "./CampoPatente";
 import { SelectorBomba } from "./SelectorBomba";
 
 type Tipo = "DESCARGA" | "CARGA";
@@ -18,8 +19,8 @@ type Props = {
   tanques: Opcion[];
   bombas: OpcionBomba[];
   operarios: Opcion[];
-  /** Bomba ocupada → hoja de ruta que la usa. */
-  ocupadas: Record<number, string>;
+  /** Bomba que no se puede elegir → motivo ("en uso (HR123)" o "en mantenimiento"). */
+  noDisponibles: Record<number, string>;
   /** Si se entró desde un sector del tablero ("Descarga 1"), se ofrecen sus bombas. */
   sector: string | null;
 };
@@ -47,7 +48,7 @@ export function FormularioNuevaDescarga(props: Props) {
   const esCarga = tipo === "CARGA";
   const bombas = soloSector ? props.bombas.filter((b) => b.sector === props.sector) : props.bombas;
   // Desde un sector, se sugiere su primera bomba libre.
-  const sugerida = soloSector ? bombas.find((b) => !props.ocupadas[b.id]) : undefined;
+  const sugerida = soloSector ? bombas.find((b) => !props.noDisponibles[b.id]) : undefined;
 
   return (
     <form onSubmit={alEnviar} className="flex flex-col gap-5">
@@ -63,8 +64,8 @@ export function FormularioNuevaDescarga(props: Props) {
       <Campo etiqueta="Hoja de ruta" ayuda="Solo letras y números.">
         <CampoAlfanumerico nombre="hojaDeRuta" maximo={30} />
       </Campo>
-      <Campo etiqueta="Patente" ayuda="Solo letras y números.">
-        <CampoAlfanumerico nombre="patente" maximo={10} />
+      <Campo etiqueta="Patente (camión/acoplado)" ayuda="La barra se agrega sola. Si no tiene acoplado, cargá solo la del camión.">
+        <CampoPatente />
       </Campo>
       <Campo etiqueta="Producto">
         <Desplegable nombre="productoId" opciones={props.productos.map((o) => ({ valor: o.id, texto: o.nombre }))} />
@@ -80,7 +81,7 @@ export function FormularioNuevaDescarga(props: Props) {
         <SelectorBomba
           key={String(soloSector)}
           bombas={bombas}
-          ocupadas={props.ocupadas}
+          noDisponibles={props.noDisponibles}
           inicial={sugerida ? String(sugerida.id) : ""}
         />
         {props.sector && (

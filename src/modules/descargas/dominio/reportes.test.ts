@@ -13,7 +13,7 @@ import {
 const ar = (dia: string, hora: string) => desdeDiaHora(dia, hora)!;
 const rangoOctubre = { desde: ar("2026-10-01", "00:00"), hasta: ar("2026-11-01", "00:00") };
 
-/** Caso de la sección 5: 16:00–19:30 del día 1 y 06:00–09:15 del día 2, 28,450 t. */
+/** Caso de la sección 5: 16:00–19:30 del día 1 y 06:00–09:15 del día 2, 28.450 kg. */
 const caso675: DescargaReporte = {
   id: 1,
   hojaDeRuta: "HR1",
@@ -78,7 +78,7 @@ describe("resumen de una descarga", () => {
     expect(r.horasBombeo).toBe(6.75);
     expect(r.horasTotales).toBe(17.25);
     expect(r.horasPausa).toBe(10.5);
-    expect(r.rendimiento).toBeCloseTo(28.45 / 6.75, 10);
+    expect(r.rendimiento).toBeCloseTo(28450 / 6.75, 10);
     expect(r.fin).toEqual(ar("2026-10-02", "09:15"));
   });
 
@@ -93,7 +93,7 @@ describe("resumen de una descarga", () => {
 describe("toneladas y rendimiento por bomba", () => {
   it("con una sola bomba es exacto", () => {
     expect(toneladasPorBomba([caso675])).toEqual([
-      { bombaId: 1, tipo: "DESCARGA", kilos: 28450, horas: 6.75, rendimiento: 28.45 / 6.75, asignacionManual: false, descargas: 1 },
+      { bombaId: 1, tipo: "DESCARGA", kilos: 28450, horas: 6.75, rendimiento: 28450 / 6.75, asignacionManual: false, descargas: 1 },
     ]);
   });
 

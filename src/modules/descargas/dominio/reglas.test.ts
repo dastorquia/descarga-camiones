@@ -5,6 +5,7 @@ import {
   esFuturo,
   normalizarHojaDeRuta,
   normalizarPatente,
+  formatearPatenteAlEscribir,
   operacionPermitida,
   tramoSolapado,
 } from "./reglas";
@@ -23,15 +24,31 @@ describe("hoja de ruta", () => {
     }
   });
 
-  it("la patente es obligatoria y se normaliza", () => {
-    expect(normalizarPatente("  ab 123 cd ")).toEqual({ ok: true, valor: "AB123CD" });
+  it("la patente es obligatoria; camión/acoplado, con acoplado opcional", () => {
+    expect(normalizarPatente("  ab 123 cd/ac456ef ")).toEqual({ ok: true, valor: "AB123CD/AC456EF" });
+    expect(normalizarPatente("ABC123/DEF456")).toEqual({ ok: true, valor: "ABC123/DEF456" });
+    expect(normalizarPatente("AB123CD")).toEqual({ ok: true, valor: "AB123CD" });
+    expect(normalizarPatente("AB123CD/")).toEqual({ ok: true, valor: "AB123CD" });
     expect(normalizarPatente("  ").ok).toBe(false);
   });
 
-  it("la patente rechaza caracteres especiales", () => {
-    for (const texto of ["AB-123-CD", "AB.123", "AB_1", "ÑA123"]) {
+  it("la patente rechaza símbolos, barras de más y largos inválidos", () => {
+    for (const texto of ["AB-123-CD", "AB.123", "ÑA123", "AB123CD/AC456EF/X", "AB1/CD123", "AB123CD/AC456EF9"]) {
       expect(normalizarPatente(texto).ok, texto).toBe(false);
     }
+  });
+
+  it("agrega la barra sola al completar la patente del camión", () => {
+    expect(formatearPatenteAlEscribir("AB123CD", "AB123C")).toBe("AB123CD/");
+    expect(formatearPatenteAlEscribir("ABC123", "ABC12")).toBe("ABC123/");
+    expect(formatearPatenteAlEscribir("AB123C", "AB123")).toBe("AB123C");
+    expect(formatearPatenteAlEscribir("ab123cdac456ef", "")).toBe("AB123CD/AC456EF");
+  });
+
+  it("no vuelve a poner la barra si se la borra, y no deja poner dos", () => {
+    expect(formatearPatenteAlEscribir("AB123CD", "AB123CD/")).toBe("AB123CD");
+    expect(formatearPatenteAlEscribir("AB123CD//AC", "AB123CD/")).toBe("AB123CD/AC");
+    expect(formatearPatenteAlEscribir("AB123CD/AC456EF99", "AB123CD/AC456EF")).toBe("AB123CD/AC456EF");
   });
 });
 

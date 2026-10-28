@@ -29,6 +29,7 @@ export function mensajeDeError(error: unknown): string {
   if (texto.includes("TramoBombeo_bomba_sin_solape")) return "La bomba ya está en uso en ese horario.";
   if (texto.includes("TramoBombeo_descarga_sin_solape")) return "Los horarios se superponen con otro tramo de esta descarga.";
   if (texto.includes("TramoBombeo_fin_posterior_inicio")) return "La hora de fin tiene que ser posterior al inicio.";
+  if (texto.includes("MantenimientoBomba_uno_abierto")) return "La bomba ya está en mantenimiento.";
   console.error(error);
   return "No se pudo guardar. Probá de nuevo.";
 }
@@ -74,4 +75,13 @@ export async function exigirBombaLibre(
       `La bomba ${choque.bomba.codigo} está en uso en ese horario (hoja de ruta ${choque.descarga.hojaDeRuta}).`,
     );
   }
+}
+
+/** Una bomba en mantenimiento no se puede usar para bombear ahora (iniciar, reanudar). */
+export async function exigirBombaSinMantenimiento(tx: Prisma.TransactionClient, bombaId: number) {
+  const abierto = await tx.mantenimientoBomba.findFirst({
+    where: { bombaId, hasta: null },
+    include: { bomba: { select: { codigo: true } } },
+  });
+  if (abierto) throw new ErrorNegocio(`La bomba ${abierto.bomba.codigo} está en mantenimiento. Elegí otra.`);
 }

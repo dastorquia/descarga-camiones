@@ -37,17 +37,26 @@ export function tramoEnAlerta(inicio: Date, ahora: Date, horas: number): boolean
 type Bomba = { id: number; codigo: string; sector: string | null };
 type TramoAbierto = { bombaId: number; inicio: Date; descarga: { id: number; hojaDeRuta: string } };
 
+type MantenimientoAbierto = { bombaId: number; desde: Date; motivo: string | null };
+
 export type EstadoBomba = Bomba & {
   ocupadaPor: { descargaId: number; hojaDeRuta: string; desde: Date } | null;
+  mantenimiento: { desde: Date; motivo: string | null } | null;
 };
 
-/** Cada bomba con la descarga que la ocupa (tramo abierto), o libre. */
-export function estadoBombas(bombas: readonly Bomba[], abiertos: readonly TramoAbierto[]): EstadoBomba[] {
+/** Cada bomba: ocupada (por qué descarga), en mantenimiento, o libre. */
+export function estadoBombas(
+  bombas: readonly Bomba[],
+  abiertos: readonly TramoAbierto[],
+  mantenimientos: readonly MantenimientoAbierto[] = [],
+): EstadoBomba[] {
   return bombas.map((b) => {
     const t = abiertos.find((a) => a.bombaId === b.id);
+    const m = mantenimientos.find((x) => x.bombaId === b.id);
     return {
       ...b,
       ocupadaPor: t ? { descargaId: t.descarga.id, hojaDeRuta: t.descarga.hojaDeRuta, desde: t.inicio } : null,
+      mantenimiento: m ? { desde: m.desde, motivo: m.motivo } : null,
     };
   });
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FormularioNuevaDescarga } from "@/modules/descargas/componentes/FormularioNuevaDescarga";
-import { bombasOcupadas } from "@/modules/descargas/datos";
+import { bombasNoDisponibles } from "@/modules/descargas/datos";
 import { exigirPermiso } from "@/shared/auth/sesion";
 import { catalogosActivos } from "@/shared/catalogos/datos";
 import { Encabezado } from "@/shared/ui/Encabezado";
@@ -8,7 +8,7 @@ import { Encabezado } from "@/shared/ui/Encabezado";
 // Formulario de nueva descarga (sección 6.3). Con ?sector=Descarga 1 ofrece las bombas de ese sector.
 export default async function NuevaDescarga({ searchParams }: PageProps<"/colaborador/nueva">) {
   const sesion = await exigirPermiso("descargas.operar");
-  const [catalogos, ocupadas, parametros] = await Promise.all([catalogosActivos(), bombasOcupadas(), searchParams]);
+  const [catalogos, noDisponibles, parametros] = await Promise.all([catalogosActivos(), bombasNoDisponibles(), searchParams]);
   const pedido = typeof parametros.sector === "string" ? parametros.sector : null;
   const sector = catalogos.bombas.some((b) => b.sector === pedido) ? pedido : null;
 
@@ -22,7 +22,7 @@ export default async function NuevaDescarga({ searchParams }: PageProps<"/colabo
           </Link>
           <h1 className="mt-1 text-2xl font-bold">Nueva descarga{sector ? ` · ${sector}` : ""}</h1>
         </div>
-        <FormularioNuevaDescarga {...catalogos} ocupadas={Object.fromEntries(ocupadas)} sector={sector} />
+        <FormularioNuevaDescarga {...catalogos} noDisponibles={Object.fromEntries(noDisponibles)} sector={sector} />
       </main>
     </>
   );

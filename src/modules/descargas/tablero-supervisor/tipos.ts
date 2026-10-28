@@ -22,12 +22,14 @@ export type BombaTablero = {
   etiqueta: string;
   sector: string | null;
   ocupadaPor: { descargaId: number; hojaDeRuta: string; desde: string } | null;
+  mantenimiento: { desde: string; motivo: string | null } | null;
 };
 
-export type TanqueTablero = {
-  id: number;
-  codigo: string;
-  descargas: { id: number; hojaDeRuta: string; estado: "EN_CURSO" | "PAUSADA" }[];
+/** Totales del mes en curso por bomba, para los gráficos (se reinician cada mes). */
+export type GraficosMes = {
+  /** "Octubre 2026" */
+  mes: string;
+  bombas: { id: number; etiqueta: string; kilosDescarga: number; kilosCarga: number; horas: number }[];
 };
 
 export type DatosTablero = {
@@ -37,5 +39,5 @@ export type DatosTablero = {
   enCurso: TarjetaTablero[];
   finalizadas: TarjetaTablero[];
   bombas: BombaTablero[];
-  tanques: TanqueTablero[];
+  graficos: GraficosMes;
 };
