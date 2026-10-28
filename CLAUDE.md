@@ -84,6 +84,7 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - tras 5 intentos fallidos desde un dispositivo, o 20 desde una misma IP (la planta puede compartir IP), bloqueo de 5 minutos; se guarda en la tabla `IntentoPin`;
   - la sesión de Supervisor vence tras 30 minutos de inactividad; la de Colaborador, tras 30 días. El proxy renueva la sesión con cada pedido;
   - mientras siga siendo el PIN por defecto, se muestra un aviso.
+- **Actualización automática de tableros:** el del Supervisor pide `/api/supervisor/tablero` cada 20 s con el encabezado `x-actualizacion-automatica: 1`; el proxy **no** renueva la sesión con esos pedidos, así la inactividad de 30 min se respeta. Todo pedido automático nuevo tiene que mandar ese encabezado. El tablero del Colaborador usa `router.refresh()` solo para el perfil Colaborador.
 - **Autorización:** los permisos están solo en `src/shared/auth/perfiles.ts`. El proxy hace un control previo, pero cada página y cada Server Action vuelve a verificar con `exigirPermiso`.
 - **Catálogos:** se desactivan, nunca se borran.
 - **Auditoría:** toda edición o desactivación va a `AuditLog`, con perfil, valor anterior y nuevo, y fecha.

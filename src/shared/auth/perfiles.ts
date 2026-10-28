@@ -18,6 +18,7 @@ export const PERMISOS = {
   "descargas.editarFinalizadas": SOLO_SUPERVISOR,
   "tramos.asignarToneladas": SOLO_SUPERVISOR,
   "tablero.ver": AMBOS,
+  "tablero.supervisor": SOLO_SUPERVISOR,
   "catalogos.administrar": SOLO_SUPERVISOR,
   "configuracion.administrar": SOLO_SUPERVISOR,
   "pin.cambiar": SOLO_SUPERVISOR,
@@ -33,6 +34,7 @@ export function puede(perfil: Perfil, permiso: Permiso): boolean {
 // Rutas protegidas por prefijo. Las que no figuran son públicas.
 const RUTAS: { prefijo: string; perfiles: readonly Perfil[] }[] = [
   { prefijo: "/supervisor", perfiles: SOLO_SUPERVISOR },
+  { prefijo: "/api/supervisor", perfiles: SOLO_SUPERVISOR },
   { prefijo: "/colaborador", perfiles: AMBOS },
 ];
 

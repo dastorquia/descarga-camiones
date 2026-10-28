@@ -6,6 +6,7 @@ import { EtiquetaEstado, EtiquetaTipo } from "@/modules/descargas/componentes/Et
 import { bombasOcupadas, detalleDescarga } from "@/modules/descargas/datos";
 import { formatearHoras, horasBomba, horasTramo } from "@/modules/descargas/dominio/horas";
 import { formatearToneladas } from "@/modules/descargas/dominio/toneladas";
+import { inicioDe } from "@/shared/auth/perfiles";
 import { exigirPermiso } from "@/shared/auth/sesion";
 import { catalogosActivos } from "@/shared/catalogos/datos";
 import { etiquetaBomba } from "@/shared/catalogos/sector";
@@ -31,7 +32,7 @@ export default async function DetalleDescarga({ params }: PageProps<"/colaborado
       <Encabezado perfil={sesion.perfil} />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 py-6">
         <div>
-          <Link href="/colaborador" className="inline-flex min-h-11 items-center text-base font-semibold text-blue-700">
+          <Link href={inicioDe(sesion.perfil)} className="inline-flex min-h-11 items-center text-base font-semibold text-blue-700">
             ← Volver
           </Link>
           <div className="mt-1 flex flex-wrap items-center gap-2">

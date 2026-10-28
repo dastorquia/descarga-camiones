@@ -34,6 +34,11 @@ describe("rutas protegidas", () => {
     expect(perfilesDeRuta("/supervisor/cambiar-pin")).toEqual(["SUPERVISOR"]);
   });
 
+  it("los datos del tablero del Supervisor también son solo para el Supervisor", () => {
+    expect(perfilesDeRuta("/api/supervisor/tablero")).toEqual(["SUPERVISOR"]);
+    expect(puede("COLABORADOR", "tablero.supervisor")).toBe(false);
+  });
+
   it("/colaborador es para ambos perfiles", () => {
     expect(perfilesDeRuta("/colaborador")).toEqual(["COLABORADOR", "SUPERVISOR"]);
   });

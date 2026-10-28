@@ -25,3 +25,29 @@ export function agruparPorSector<T extends ConUltimaBomba>(
   }
   return [...grupos].map(([sector, lista]) => ({ sector, descargas: lista }));
 }
+
+/**
+ * Alerta de olvido (sección 5): un tramo abierto hace más de `horas` horas.
+ * Es solo una marca visual; nunca suma horas de bomba.
+ */
+export function tramoEnAlerta(inicio: Date, ahora: Date, horas: number): boolean {
+  return ahora.getTime() - inicio.getTime() > horas * 3_600_000;
+}
+
+type Bomba = { id: number; codigo: string; sector: string | null };
+type TramoAbierto = { bombaId: number; inicio: Date; descarga: { id: number; hojaDeRuta: string } };
+
+export type EstadoBomba = Bomba & {
+  ocupadaPor: { descargaId: number; hojaDeRuta: string; desde: Date } | null;
+};
+
+/** Cada bomba con la descarga que la ocupa (tramo abierto), o libre. */
+export function estadoBombas(bombas: readonly Bomba[], abiertos: readonly TramoAbierto[]): EstadoBomba[] {
+  return bombas.map((b) => {
+    const t = abiertos.find((a) => a.bombaId === b.id);
+    return {
+      ...b,
+      ocupadaPor: t ? { descargaId: t.descarga.id, hojaDeRuta: t.descarga.hojaDeRuta, desde: t.inicio } : null,
+    };
+  });
+}

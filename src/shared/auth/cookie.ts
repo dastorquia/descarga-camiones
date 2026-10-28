@@ -5,6 +5,9 @@ import { INACTIVIDAD_MAXIMA_MS, type DatosSesion } from "./token";
 export const COOKIE_SESION = "sesion";
 export const COOKIE_DISPOSITIVO = "dispositivo";
 
+/** Encabezado de los pedidos automáticos (tableros): no cuentan como actividad de la persona. */
+export const ENCABEZADO_AUTOMATICO = "x-actualizacion-automatica";
+
 export function secretoSesion(): string {
   const secreto = process.env["SESSION_SECRET"];
   if (!secreto) throw new Error("Falta SESSION_SECRET en el archivo .env");

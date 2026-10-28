@@ -72,6 +72,19 @@ export function formatearHora(fecha: Date): string {
   return formatoHora.format(fecha);
 }
 
+const formatoHoraSegundos = new Intl.DateTimeFormat("es-AR", {
+  timeZone: ZONA_ARGENTINA,
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+/** "16:00:05" */
+export function formatearHoraConSegundos(fecha: Date): string {
+  return formatoHoraSegundos.format(fecha);
+}
+
 /** "2 h 05 min", "45 min" o "menos de 1 min". */
 export function formatearDuracion(ms: number): string {
   const minutos = Math.floor(ms / 60_000);
