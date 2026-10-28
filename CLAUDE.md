@@ -114,6 +114,8 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
 - **Reportes (Etapa 6):** `/supervisor/reportes` y `/api/supervisor/reportes` (`?formato=xlsx` o `?formato=csv&tabla=<id>`).
   - Cálculos puros en `src/modules/descargas/dominio/reportes.ts`; cada reporte es una `Tabla` genérica (`reportes/tabla.ts`) que sirve para pantalla, CSV y Excel (`exceljs`).
   - Vistas SQL en la migración `20261028200000_vistas_reportes`, documentadas en `docs/VISTAS_SQL.md`. Si cambia una tabla que usan, actualizar las vistas en una migración nueva.
+- **PWA y despliegue (Etapa 7):** manifiesto en `src/app/manifest.ts`, íconos en `public/`. Vercel en `gru1` (`vercel.json`); `npm run vercel-build` aplica migraciones solo en producción. Operación y backups: `docs/OPERACION.md`.
+- **Pruebas de integración:** `npm run test:integracion` (contra la base real, en transacciones que se deshacen; crean sus propias bombas para no chocar con datos reales).
 - **Servidor de desarrollo:** si una acción recién creada falla con "undefined" en el servidor, reiniciar `npm run dev` (Turbopack a veces conserva una versión vieja).
 - **Antes de cada commit:** correr `npm run typecheck`, `npm run lint` y `npm test`.
 

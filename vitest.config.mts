@@ -7,5 +7,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.test.ts", "prisma/**/*.test.ts"],
+    // Las de integración usan la base real: npm run test:integracion.
+    exclude: ["**/node_modules/**", "**/*.integracion.test.ts"],
   },
 });

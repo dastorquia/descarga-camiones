@@ -13,7 +13,9 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test:integracion": "vitest run --config vitest.integracion.config.mts",
+    "vercel-build": "node scripts/vercel-build.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
@@ -44,5 +46,8 @@
   },
   "overrides": {
     "uuid": "^11.1.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
