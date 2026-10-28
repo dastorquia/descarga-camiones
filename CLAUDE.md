@@ -100,6 +100,11 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - en los formularios, día y hora son campos separados, y el día de fin viene por defecto igual al de inicio.
 - **Números:** coma decimal en pantalla (6,75 h; 28,450 t).
 - **Código:** nombres de dominio en español (descarga, tramo, bomba). Las reglas de negocio viven en el servidor y se prueban con funciones puras en Vitest.
+  - Reglas puras: `src/modules/descargas/dominio/` (horas, toneladas, reglas). Acciones: `src/modules/descargas/acciones.ts`.
+  - Fechas de Argentina: `src/shared/lib/fechas.ts` (`desdeDiaHora`, `aDiaHora`, `formatearFechaHora`).
+  - Formularios cliente: usar `useFormulario` (`src/shared/ui/useFormulario.ts`), que no vacía los campos si hay error.
+  - Toneladas: se manejan como texto ("28.450") hasta Prisma; nunca `Number` para guardar.
+  - La advertencia de toneladas fuera de rango se confirma reenviando el mismo valor (`confirmado` = valor advertido).
 - **Antes de cada commit:** correr `npm run typecheck`, `npm run lint` y `npm test`.
 
 ## Comandos
