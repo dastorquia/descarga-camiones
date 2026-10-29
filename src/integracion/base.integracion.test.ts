@@ -54,19 +54,19 @@ const D2 = "2001-01-02";
 
 describe("restricciones de la base", () => {
   it("acepta el caso de la sección 5 y la vista calcula 6,75 h", async () => {
-    let fila: { horas_bombeo: unknown; horas_totales: unknown; horas_pausa: unknown; rendimiento_t_h: unknown } | undefined;
+    let fila: { horas_bombeo: unknown; horas_totales: unknown; horas_pausa: unknown; rendimiento_kg_h: unknown } | undefined;
     const error = await enTransaccion(async ({ tx, descarga, tramo, bomba1 }) => {
       const d = await descarga("INTEGRACION675");
       await tramo(d.id, bomba1, ar(D1, "16:00"), ar(D1, "19:30"));
       await tramo(d.id, bomba1, ar(D2, "06:00"), ar(D2, "09:15"));
       await tx.descarga.update({ where: { id: d.id }, data: { estado: "FINALIZADA", toneladas: "28.450" } });
-      [fila] = await tx.$queryRaw`SELECT horas_bombeo, horas_totales, horas_pausa, rendimiento_t_h FROM v_descargas_resumen WHERE descarga_id = ${d.id}`;
+      [fila] = await tx.$queryRaw`SELECT horas_bombeo, horas_totales, horas_pausa, rendimiento_kg_h FROM v_descargas_resumen WHERE descarga_id = ${d.id}`;
     });
     expect(error).toBeNull();
     expect(Number(fila?.horas_bombeo)).toBe(6.75);
     expect(Number(fila?.horas_totales)).toBe(17.25);
     expect(Number(fila?.horas_pausa)).toBe(10.5);
-    expect(Number(fila?.rendimiento_t_h)).toBeCloseTo(4.215, 3);
+    expect(Number(fila?.rendimiento_kg_h)).toBe(4215);
   });
 
   it("rechaza tramos superpuestos de una misma bomba", async () => {
@@ -114,6 +114,35 @@ describe("restricciones de la base", () => {
       await tramo(a.id, bomba1, ar(D1, "12:00"), ar(D1, "10:00"));
     });
     expect(restriccion(error)).toContain("TramoBombeo_fin_posterior_inicio");
+  });
+
+  it("rechaza dos mantenimientos abiertos de la misma bomba", async () => {
+    const error = await enTransaccion(async ({ tx, bomba1 }) => {
+      await tx.mantenimientoBomba.create({ data: { bombaId: bomba1 } });
+      await tx.mantenimientoBomba.create({ data: { bombaId: bomba1 } });
+    });
+    expect(restriccion(error)).toContain("MantenimientoBomba_uno_abierto");
+  });
+
+  it("acepta un mantenimiento terminado y uno nuevo de la misma bomba", async () => {
+    const error = await enTransaccion(async ({ tx, bomba1 }) => {
+      await tx.mantenimientoBomba.create({ data: { bombaId: bomba1, desde: ar(D1, "08:00"), hasta: ar(D1, "10:00") } });
+      await tx.mantenimientoBomba.create({ data: { bombaId: bomba1 } });
+    });
+    expect(error).toBeNull();
+  });
+
+  it("la vista resume en kilos y kg/h", async () => {
+    let fila: { kilos: unknown; rendimiento_kg_h: unknown } | undefined;
+    const error = await enTransaccion(async ({ tx, descarga, tramo, bomba1 }) => {
+      const d = await descarga("INTEGRACIONKG");
+      await tramo(d.id, bomba1, ar(D1, "10:00"), ar(D1, "14:00"));
+      await tx.descarga.update({ where: { id: d.id }, data: { estado: "FINALIZADA", toneladas: "28.000" } });
+      [fila] = await tx.$queryRaw`SELECT kilos, rendimiento_kg_h FROM v_descargas_resumen WHERE descarga_id = ${d.id}`;
+    });
+    expect(error).toBeNull();
+    expect(Number(fila?.kilos)).toBe(28000);
+    expect(Number(fila?.rendimiento_kg_h)).toBe(7000);
   });
 
   it("rechaza una hoja de ruta repetida", async () => {

@@ -99,29 +99,32 @@ export default async function TableroColaborador() {
 
         <section className="flex flex-col gap-2">
           <h2 className="text-xl font-bold">Bombas</h2>
-          <TablaDatos columnas={["Bomba", "Estado", ""]}>
+          <TablaDatos columnas={["Bomba", "Estado"]}>
             {bombas.map((b) => (
               <tr key={b.id} className={b.mantenimiento ? "!bg-orange-50" : undefined}>
                 <Celda className="font-semibold">{etiquetaBomba(b.codigo, b.sector)}</Celda>
-                <Celda className="whitespace-normal">
-                  {b.mantenimiento ? (
-                    <span className="font-semibold text-orange-800">
-                      En mantenimiento desde {formatearFechaHora(b.mantenimiento.desde)}
-                      {b.mantenimiento.motivo && <span className="font-normal"> · {b.mantenimiento.motivo}</span>}
-                    </span>
-                  ) : b.ocupadaPor ? (
-                    <span className="text-green-800">
-                      En uso ·{" "}
-                      <Link href={`/colaborador/descargas/${b.ocupadaPor.descargaId}`} className={enlaceHoja}>
-                        {b.ocupadaPor.hojaDeRuta}
-                      </Link>
-                    </span>
-                  ) : (
-                    <span className="text-slate-600">Libre</span>
-                  )}
-                </Celda>
-                <Celda>
-                  <AccionMantenimiento bombaId={b.id} codigo={b.codigo} enMantenimiento={!!b.mantenimiento} enUso={!!b.ocupadaPor} />
+                {/* Estado y botón en la misma celda: así la tabla entra en el celular. */}
+                <Celda className="w-full !whitespace-normal">
+                  <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    {b.mantenimiento ? (
+                      <span className="font-semibold text-orange-800">
+                        En mantenimiento desde {formatearFechaHora(b.mantenimiento.desde)}
+                        {b.mantenimiento.motivo && <span className="font-normal"> · {b.mantenimiento.motivo}</span>}
+                      </span>
+                    ) : b.ocupadaPor ? (
+                      <span className="text-green-800">
+                        En uso ·{" "}
+                        <Link href={`/colaborador/descargas/${b.ocupadaPor.descargaId}`} className={enlaceHoja}>
+                          {b.ocupadaPor.hojaDeRuta}
+                        </Link>
+                      </span>
+                    ) : (
+                      <span className="text-slate-600">Libre</span>
+                    )}
+                    {!b.ocupadaPor && (
+                      <AccionMantenimiento bombaId={b.id} codigo={b.codigo} enMantenimiento={!!b.mantenimiento} enUso={false} />
+                    )}
+                  </div>
                 </Celda>
               </tr>
             ))}
