@@ -15,7 +15,8 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "test:integracion": "vitest run --config vitest.integracion.config.mts",
-    "vercel-build": "node scripts/vercel-build.mjs"
+    "vercel-build": "node scripts/vercel-build.mjs",
+    "demo:generar": "node scripts/generar-demo.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
