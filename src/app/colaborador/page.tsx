@@ -9,12 +9,13 @@ import { etiquetaBomba } from "@/shared/catalogos/sector";
 import { formatearFechaHora } from "@/shared/lib/fechas";
 import { Actualizador } from "@/shared/ui/Actualizador";
 import { Encabezado } from "@/shared/ui/Encabezado";
-import { botonPrincipal, botonSecundario } from "@/shared/ui/estilos";
+import { botonPrincipal, botonSecundario, mensajeExito } from "@/shared/ui/estilos";
 
 // Inicio del Colaborador (sección 6.2 y 13): tarjetas de Pendientes, En curso y
 // Finalizadas hoy, y abajo las bombas en mantenimiento.
-export default async function TableroColaborador() {
+export default async function TableroColaborador({ searchParams }: PageProps<"/colaborador">) {
   const sesion = await exigirPermiso("descargas.operar");
+  const { registrado } = await searchParams;
   const [activas, finalizadas, bombas] = await Promise.all([descargasActivas(), descargasFinalizadasHoy(), estadoBombasActual()]);
   const sectores = [...new Set(bombas.map((b) => b.sector).filter((s): s is string => s !== null))].sort();
 
@@ -39,6 +40,12 @@ export default async function TableroColaborador() {
           <Link href="/colaborador/nueva" className={`${botonPrincipal} min-h-16 text-xl md:max-w-xs`}>
             + Nueva descarga
           </Link>
+          <Link href="/colaborador/movimientos/nuevo" className={`${botonSecundario} md:max-w-56`}>
+            + Nuevo movimiento
+          </Link>
+          <Link href="/colaborador/autonomo/nuevo" className={`${botonSecundario} md:max-w-64`}>
+            + Mantenimiento autónomo
+          </Link>
           <Link href="/colaborador/historial" className={`${botonSecundario} md:max-w-48`}>
             Historial
           </Link>
@@ -55,6 +62,9 @@ export default async function TableroColaborador() {
             ))}
           </div>
         </div>
+
+        {registrado === "movimiento" && <p className={mensajeExito}>Movimiento interno registrado.</p>}
+        {registrado === "autonomo" && <p className={mensajeExito}>Tarea de mantenimiento autónomo registrada.</p>}
 
         <TarjetasDescargas datos={datos} />
 

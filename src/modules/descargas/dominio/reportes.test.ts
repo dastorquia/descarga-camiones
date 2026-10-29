@@ -61,6 +61,13 @@ describe("horas por bomba", () => {
     expect(horasPorBombaPorMes(porDia)).toEqual([{ bombaId: 1, mes: "2026-10", horas: 6.75 }]);
   });
 
+  it("suma también los usos de bomba de movimientos internos", () => {
+    const movimiento = { bombaId: 2, inicio: ar("2026-10-03", "08:00"), fin: ar("2026-10-03", "09:30"), toneladas: null };
+    expect(horasPorBombaPorDia([caso675], rangoOctubre, [movimiento]).filter((h) => h.bombaId === 2)).toEqual([
+      { bombaId: 2, dia: "2026-10-03", horas: 1.5 },
+    ]);
+  });
+
   it("los tramos abiertos no suman horas", () => {
     const abierta: DescargaReporte = { ...caso675, estado: "EN_CURSO", toneladas: null, tramos: [{ ...caso675.tramos[0]!, fin: null }] };
     expect(horasPorBombaPorDia([abierta], rangoOctubre)).toEqual([]);

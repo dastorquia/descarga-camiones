@@ -12,6 +12,7 @@ import {
   type Rango,
 } from "../dominio/reportes";
 import { aKilosDesdeBase } from "../dominio/toneladas";
+import { intervalosMovimientos } from "@/modules/movimientos/datos";
 import type { FiltrosReporte } from "./filtros";
 import type { Tabla } from "./tabla";
 
@@ -74,7 +75,8 @@ export async function armarReportes(f: FiltrosReporte): Promise<Tabla[]> {
   const finalizadas = finalizadasEnRango(descargas, rango);
   const soloFinalizadas = finalizadas.map((x) => x.d);
 
-  const porDia = horasPorBombaPorDia(descargas, rango);
+  // Las horas de bomba incluyen los movimientos internos (sección 13).
+  const porDia = horasPorBombaPorDia(descargas, rango, await intervalosMovimientos(rango));
   const porMes = horasPorBombaPorMes(porDia);
 
   const porClave = (campo: keyof typeof nombre, titulo: string, id: string): Tabla => ({

@@ -72,6 +72,11 @@ model Bomba {
   tramos      TramoBombeo[]
   // Relación agregada con MantenimientoBomba: no cambia la tabla Bomba.
   mantenimientos MantenimientoBomba[]
+  // Relaciones agregadas el 29/10/2026 (movimientos internos y mantenimiento autónomo).
+  movimientosCarga    MovimientoInterno[] @relation("BombaCarga")
+  movimientosDescarga MovimientoInterno[] @relation("BombaDescarga")
+  autonomo            BombaAutonomo?
+  tareasAutonomas     TareaAutonoma[]
 }
 
 // Agregado el 29/10/2026 (migración aditiva): períodos en que una bomba estuvo
@@ -94,6 +99,8 @@ model Tanque {
   codigo    String     @unique // formato TK-001, TK-012, TK-101
   activo    Boolean    @default(true)
   descargas Descarga[]
+  movimientosOrigen  MovimientoInterno[] @relation("TanqueOrigen")
+  movimientosDestino MovimientoInterno[] @relation("TanqueDestino")
 }
 
 model Producto {
@@ -115,6 +122,8 @@ model Operario {
   nombre String        @unique
   activo Boolean       @default(true)
   tramos TramoBombeo[]
+  movimientos     MovimientoInterno[]
+  tareasAutonomas TareaAutonoma[]
 }
 
 model Config {
@@ -140,4 +149,56 @@ model AuditLog {
   accion    String // CREAR | EDITAR | DESACTIVAR ...
   antes     Json?
   despues   Json?
+}
+
+// Agregado el 29/10/2026 (migración aditiva): movimiento interno entre tanques.
+// Se carga completo al terminar. Sus horas se suman a las de las dos bombas.
+model MovimientoInterno {
+  id              Int      @id @default(autoincrement())
+  tanqueOrigenId  Int
+  tanqueDestinoId Int
+  toneladas       Decimal  @db.Decimal(10, 3)
+  patente         String
+  inicio          DateTime
+  fin             DateTime
+  bombaCargaId    Int
+  bombaDescargaId Int
+  operarioId      Int
+  creadoEn        DateTime @default(now())
+
+  tanqueOrigen  Tanque   @relation("TanqueOrigen", fields: [tanqueOrigenId], references: [id])
+  tanqueDestino Tanque   @relation("TanqueDestino", fields: [tanqueDestinoId], references: [id])
+  bombaCarga    Bomba    @relation("BombaCarga", fields: [bombaCargaId], references: [id])
+  bombaDescarga Bomba    @relation("BombaDescarga", fields: [bombaDescargaId], references: [id])
+  operario      Operario @relation(fields: [operarioId], references: [id])
+
+  @@index([inicio])
+}
+
+enum TipoTareaAutonoma {
+  INSPECCION_CUERPO
+  INSPECCION_SKID
+  LIMPIEZA
+  AJUSTE_PRENSAESTOPAS
+}
+
+// Agregado el 29/10/2026: bombas que requieren mantenimiento autónomo (si hay fila, lo requiere).
+model BombaAutonomo {
+  bombaId Int   @id
+  bomba   Bomba @relation(fields: [bombaId], references: [id])
+}
+
+// Registro de cada tarea de mantenimiento autónomo hecha.
+model TareaAutonoma {
+  id         Int               @id @default(autoincrement())
+  bombaId    Int
+  tarea      TipoTareaAutonoma
+  operarioId Int
+  fecha      DateTime
+  creadoEn   DateTime          @default(now())
+
+  bomba    Bomba    @relation(fields: [bombaId], references: [id])
+  operario Operario @relation(fields: [operarioId], references: [id])
+
+  @@index([bombaId, tarea, fecha])
 }

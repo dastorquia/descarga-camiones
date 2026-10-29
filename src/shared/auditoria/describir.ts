@@ -27,6 +27,9 @@ const ETIQUETAS: Record<string, string> = {
   sector: "Sector",
   activo: "Activo",
   enMantenimiento: "En mantenimiento",
+  mantenimientoAutonomo: "Mantenimiento autónomo",
+  tarea: "Tarea",
+  fecha: "Día y hora",
   motivo: "Motivo",
   pinCambiado: "PIN cambiado",
   pinPorDefecto: "PIN por defecto",
@@ -106,6 +109,8 @@ export const NOMBRE_ENTIDAD: Record<string, string> = {
   Producto: "Producto",
   Proveedor: "Proveedor o cliente",
   Operario: "Operario",
+  MovimientoInterno: "Movimiento interno",
+  TareaAutonoma: "Mantenimiento autónomo",
   "Config.umbrales": "Umbrales",
   "Config.pinSupervisor": "PIN del Supervisor",
 };

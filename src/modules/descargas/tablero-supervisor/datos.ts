@@ -8,6 +8,7 @@ import { descargasActivas, descargasFinalizadasHoy } from "../datos";
 import { horasBomba } from "../dominio/horas";
 import { horasPorBombaPorDia, toneladasPorBomba } from "../dominio/reportes";
 import { estadoBombas } from "../dominio/tablero";
+import { intervalosMovimientos } from "@/modules/movimientos/datos";
 import { cargarDescargasReporte, finalizadasEnRango } from "../reportes/datos";
 import type { DatosTablero, TarjetaTablero } from "./tipos";
 
@@ -65,7 +66,7 @@ export async function datosTablero(): Promise<DatosTablero> {
 
   // Gráficos del mes en curso: mismos cálculos que los reportes.
   const horas = new Map<number, number>();
-  for (const h of horasPorBombaPorDia(delMes, mes)) horas.set(h.bombaId, (horas.get(h.bombaId) ?? 0) + h.horas);
+  for (const h of horasPorBombaPorDia(delMes, mes, await intervalosMovimientos(mes))) horas.set(h.bombaId, (horas.get(h.bombaId) ?? 0) + h.horas);
   const kilos = toneladasPorBomba(finalizadasEnRango(delMes, mes).map((x) => x.d));
   const kilosDe = (bombaId: number, tipo: "DESCARGA" | "CARGA") => kilos.find((k) => k.bombaId === bombaId && k.tipo === tipo)?.kilos ?? 0;
 

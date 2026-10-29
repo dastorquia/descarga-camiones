@@ -64,11 +64,18 @@ function recortar(t: TramoReporte, rango: Rango): { inicio: Date; fin: Date } | 
 
 export type HorasBombaDia = { bombaId: number; dia: string; horas: number };
 
-/** Horas de funcionamiento por bomba y por día (repartidas en la medianoche), dentro del rango. */
-export function horasPorBombaPorDia(descargas: readonly DescargaReporte[], rango: Rango): HorasBombaDia[] {
+/**
+ * Horas de funcionamiento por bomba y por día (repartidas en la medianoche), dentro del rango.
+ * `extra`: otros usos de bomba que también suman horas (movimientos internos).
+ */
+export function horasPorBombaPorDia(
+  descargas: readonly DescargaReporte[],
+  rango: Rango,
+  extra: readonly TramoReporte[] = [],
+): HorasBombaDia[] {
   const suma = new Map<string, HorasBombaDia>();
-  for (const d of descargas) {
-    for (const t of d.tramos) {
+  for (const tramos of [...descargas.map((d) => d.tramos), extra]) {
+    for (const t of tramos) {
       const r = recortar(t, rango);
       if (!r) continue;
       for (const { dia, horas } of repartirPorDia(r.inicio, r.fin)) {

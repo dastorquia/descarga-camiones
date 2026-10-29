@@ -21,6 +21,12 @@ export default async function InicioSupervisor() {
         <Link href="/colaborador/historial" className={enlace}>
           Historial
         </Link>
+        <Link href="/supervisor/movimientos" className={enlace}>
+          Movimientos
+        </Link>
+        <Link href="/supervisor/autonomo" className={enlace}>
+          Mant. autónomo
+        </Link>
         <Link href="/supervisor/reportes" className={enlace}>
           Reportes
         </Link>
