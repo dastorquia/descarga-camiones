@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { esCatalogo, normalizarCodigoBomba, normalizarNombre, normalizarSector, normalizarTanque } from "./validacion";
 
 describe("normalización de catálogos", () => {
-  it("tanques con formato TK-001", () => {
+  it("tanques: TK-001 (con 3 dígitos) y otros prefijos como PLT-801", () => {
     expect(normalizarTanque("tk1")).toEqual({ ok: true, valor: "TK-001" });
     expect(normalizarTanque("TK 120")).toEqual({ ok: true, valor: "TK-120" });
     expect(normalizarTanque("TK-012")).toEqual({ ok: true, valor: "TK-012" });
-    for (const t of ["", "T-1", "TK-1000", "TKA"]) expect(normalizarTanque(t).ok, t).toBe(false);
+    expect(normalizarTanque("TK-25")).toEqual({ ok: true, valor: "TK-025" });
+    expect(normalizarTanque("plt801")).toEqual({ ok: true, valor: "PLT-801" });
+    for (const t of ["", "T-1", "TK-12345", "TKA", "PLT-8A"]) expect(normalizarTanque(t).ok, t).toBe(false);
   });
 
   it("código de bomba en mayúsculas, solo letras y números", () => {

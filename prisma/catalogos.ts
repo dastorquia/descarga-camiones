@@ -1,4 +1,5 @@
-// Catálogos reales de planta, confirmados por el usuario el 28/10/2026.
+// Catálogos iniciales para una base nueva (actualizados el 29/10/2026).
+// En producción se cargaron con migraciones; el seed no duplica nada.
 
 export const PRODUCTOS = [
   "Borra",
@@ -12,16 +13,9 @@ export const PRODUCTOS = [
   "Residuo orgánico",
 ];
 
-export const PROVEEDORES = [
-  "AGD T6",
-  "AGD Deheza",
-  "Cofco Timbues",
-  "Cargill PGSM",
-  "Cargill VGG",
-  "Falavigna",
-];
+export const PROVEEDORES = Array.from({ length: 10 }, (_, i) => `Proveedor ${i + 1}`);
 
-export const OPERARIOS = ["Adrián Aguirre", "Iván Balmaceda"];
+export const OPERARIOS = Array.from({ length: 6 }, (_, i) => `Colaborador ${i + 1}`);
 
 // La descripción guarda el sector de la bomba.
 export const BOMBAS = [
@@ -32,6 +26,8 @@ export const BOMBAS = [
   { codigo: "BEL021", descripcion: "Descarga 2" },
   { codigo: "BEL004", descripcion: "Descarga 3" },
   { codigo: "BEL013", descripcion: "Descarga 3" },
+  { codigo: "BEL019", descripcion: "Descarga 4" },
+  { codigo: "BCN201", descripcion: "Descarga 4" },
 ];
 
 function codigosTanque(desde: number, hasta: number): string[] {
@@ -42,5 +38,13 @@ function codigosTanque(desde: number, hasta: number): string[] {
   return codigos;
 }
 
-// TK-001 a TK-012 y TK-101 a TK-119.
-export const TANQUES = [...codigosTanque(1, 12), ...codigosTanque(101, 119)];
+// TK-001 a TK-012, TK-025 a TK-027, TK-101 a TK-119, TK-706, TK-707, PLT-801 y PLT-802.
+export const TANQUES = [
+  ...codigosTanque(1, 12),
+  ...codigosTanque(25, 27),
+  ...codigosTanque(101, 119),
+  "TK-706",
+  "TK-707",
+  "PLT-801",
+  "PLT-802",
+];

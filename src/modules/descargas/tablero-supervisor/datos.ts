@@ -26,7 +26,8 @@ function nombreDelMes(ahora: Date): string {
 
 type ConDetalle = Awaited<ReturnType<typeof descargasActivas>>[number];
 
-function tarjeta(d: ConDetalle): TarjetaTablero {
+/** Datos de una descarga para tarjetas y tablas de los tableros. */
+export function tarjeta(d: ConDetalle): TarjetaTablero {
   const ultimo = d.tramos.at(-1);
   const abierto = d.tramos.find((t) => t.fin === null);
   return {

@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { formatearHoras } from "../dominio/horas";
-import { mostrarKilos } from "../dominio/toneladas";
 import type { GraficosMes } from "./tipos";
 
-// Gráficos del mes en curso (pedido del 29/10/2026): kilos y horas de uso por bomba.
+// Gráficos del mes en curso (pedido del 29/10/2026): toneladas y horas de uso por bomba.
 // Barras horizontales, un solo eje por gráfico, total al final de cada barra y
 // detalle al pasar el mouse. Paleta validada (azul/naranja, apta para daltonismo).
+
+/** Los gráficos muestran toneladas (más fácil de leer a escala mensual): 81000 kg → "81,0 t". */
+const mostrarToneladas = (kilos: number) => `${(kilos / 1000).toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} t`;
 
 const COLOR = { descarga: "#2a78d6", carga: "#eb6834" } as const;
 
@@ -89,7 +91,7 @@ export function GraficosDelMes({ datos }: { datos: GraficosMes }) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Grafico
-        titulo={`Kilos por bomba · ${datos.mes}`}
+        titulo={`Toneladas por bomba · ${datos.mes}`}
         tabla={
           <table className="w-full">
             <thead>
@@ -104,9 +106,9 @@ export function GraficosDelMes({ datos }: { datos: GraficosMes }) {
               {datos.bombas.map((b) => (
                 <tr key={b.id}>
                   <td className={celda}>{b.etiqueta}</td>
-                  <td className={`${celda} text-right tabular-nums`}>{mostrarKilos(b.kilosDescarga)}</td>
-                  <td className={`${celda} text-right tabular-nums`}>{mostrarKilos(b.kilosCarga)}</td>
-                  <td className={`${celda} text-right tabular-nums`}>{mostrarKilos(b.kilosDescarga + b.kilosCarga)}</td>
+                  <td className={`${celda} text-right tabular-nums`}>{mostrarToneladas(b.kilosDescarga)}</td>
+                  <td className={`${celda} text-right tabular-nums`}>{mostrarToneladas(b.kilosCarga)}</td>
+                  <td className={`${celda} text-right tabular-nums`}>{mostrarToneladas(b.kilosDescarga + b.kilosCarga)}</td>
                 </tr>
               ))}
             </tbody>
@@ -122,7 +124,7 @@ export function GraficosDelMes({ datos }: { datos: GraficosMes }) {
           />
         )}
         <Barras
-          formato={mostrarKilos}
+          formato={mostrarToneladas}
           vacio="Todavía no hay descargas finalizadas este mes."
           filas={datos.bombas.map((b) => ({
             etiqueta: b.etiqueta,
@@ -133,7 +135,7 @@ export function GraficosDelMes({ datos }: { datos: GraficosMes }) {
           }))}
         />
         <p className="text-xs text-slate-500">
-          Descargas finalizadas en el mes. Con varias bombas en un mismo camión, solo cuentan los kilos asignados por el Supervisor.
+          Descargas finalizadas en el mes. Con varias bombas en un mismo camión, solo cuentan las cantidades asignadas por el Supervisor.
         </p>
       </Grafico>
 

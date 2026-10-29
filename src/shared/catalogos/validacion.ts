@@ -2,7 +2,7 @@
 
 export const CATALOGOS = {
   bombas: { titulo: "Bombas", singular: "bomba", etiqueta: "Código", ayuda: "Por ejemplo BCI010." },
-  tanques: { titulo: "Tanques", singular: "tanque", etiqueta: "Código", ayuda: "Formato TK-001." },
+  tanques: { titulo: "Tanques", singular: "tanque", etiqueta: "Código", ayuda: "Por ejemplo TK-001 o PLT-801." },
   productos: { titulo: "Productos", singular: "producto", etiqueta: "Nombre", ayuda: undefined },
   proveedores: { titulo: "Proveedores y clientes", singular: "proveedor o cliente", etiqueta: "Nombre", ayuda: undefined },
   operarios: { titulo: "Operarios", singular: "operario", etiqueta: "Nombre", ayuda: undefined },
@@ -23,11 +23,16 @@ export function normalizarNombre(texto: string): Resultado {
   return { ok: true, valor };
 }
 
-/** "tk1", "TK 001" o "TK-001" → "TK-001". */
+/**
+ * Código de tanque: letras, guion y números ("TK-001", "PLT-801").
+ * Los TK se completan a 3 dígitos: "tk1" o "TK 25" → "TK-001", "TK-025".
+ */
 export function normalizarTanque(texto: string): Resultado {
-  const m = /^TK-?(\d{1,3})$/.exec(texto.toUpperCase().replace(/\s/g, ""));
-  if (!m) return { ok: false, error: "El código del tanque tiene el formato TK-001." };
-  return { ok: true, valor: `TK-${m[1]!.padStart(3, "0")}` };
+  const m = /^([A-Z]{2,4})-?(\d{1,4})$/.exec(texto.toUpperCase().replace(/\s/g, ""));
+  if (!m) return { ok: false, error: "El código del tanque lleva letras, un guion y números, por ejemplo TK-001 o PLT-801." };
+  const prefijo = m[1]!;
+  const numero = m[2]!;
+  return { ok: true, valor: `${prefijo}-${prefijo === "TK" ? numero.padStart(3, "0") : numero}` };
 }
 
 export function normalizarCodigoBomba(texto: string): Resultado {
