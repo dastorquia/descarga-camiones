@@ -25,5 +25,3 @@ export async function catalogosActivos() {
     operarios,
   };
 }
-
-export type Catalogos = Awaited<ReturnType<typeof catalogosActivos>>;

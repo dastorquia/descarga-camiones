@@ -5,7 +5,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Carga y descarga de camiones",
-    short_name: "Camiones",
+    short_name: "CamionesSFA",
     description: "Registro de carga y descarga de camiones en planta · Santa Fe Aceites",
     lang: "es-AR",
     start_url: "/",

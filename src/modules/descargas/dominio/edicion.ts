@@ -1,6 +1,7 @@
 import { esFuturo } from "./reglas";
+import { aKilosDesdeBase, kilosATexto } from "./toneladas";
 
-// Reglas para editar tramos y asignar toneladas por tramo (Etapa 5).
+// Reglas para editar tramos y asignar kilos por tramo (Etapa 5).
 
 export type TramoEditable = { id: number; inicio: Date; fin: Date | null };
 
@@ -29,24 +30,11 @@ export function errorEnTramos(tramos: readonly TramoEditable[], ahora: Date): st
   return null;
 }
 
-// Toneladas en kilos enteros para sumar y restar sin errores de redondeo.
-
-/** "28.450" → 28450 */
-export function aKilos(toneladas: string): number {
-  const [entero = "0", decimales = ""] = toneladas.split(".");
-  return Number(entero) * 1000 + Number(decimales.padEnd(3, "0").slice(0, 3));
-}
-
-/** 28450 → "28.450" */
-export function desdeKilos(kilos: number): string {
-  return `${Math.floor(kilos / 1000)}.${String(kilos % 1000).padStart(3, "0")}`;
-}
-
-/** La suma de las toneladas asignadas a los tramos no puede superar el total (sección 5). */
+/** La suma de los kilos asignados a los tramos no puede superar el total (sección 5). */
 export function errorEnAsignacion(total: string, asignadas: readonly (string | null)[]): string | null {
-  const suma = asignadas.reduce((s, v) => s + (v ? aKilos(v) : 0), 0);
-  if (suma > aKilos(total)) {
-    return `Lo asignado a los tramos (${suma.toLocaleString("es-AR")} kg) supera el total de la descarga (${aKilos(total).toLocaleString("es-AR")} kg).`;
+  const suma = asignadas.reduce((s, v) => s + (v ? aKilosDesdeBase(v) : 0), 0);
+  if (suma > aKilosDesdeBase(total)) {
+    return `Lo asignado a los tramos (${suma.toLocaleString("es-AR")} kg) supera el total de la descarga (${aKilosDesdeBase(total).toLocaleString("es-AR")} kg).`;
   }
   return null;
 }
@@ -58,8 +46,8 @@ export function errorEnAsignacion(total: string, asignadas: readonly (string | n
 export function propuestaResto(total: string, asignadas: readonly (string | null)[]): { indice: number; valor: string } | null {
   const vacios = asignadas.flatMap((v, i) => (v ? [] : [i]));
   if (vacios.length !== 1) return null;
-  const resto = aKilos(total) - asignadas.reduce((s, v) => s + (v ? aKilos(v) : 0), 0);
-  return resto > 0 ? { indice: vacios[0]!, valor: desdeKilos(resto) } : null;
+  const resto = aKilosDesdeBase(total) - asignadas.reduce((s, v) => s + (v ? aKilosDesdeBase(v) : 0), 0);
+  return resto > 0 ? { indice: vacios[0]!, valor: kilosATexto(resto) } : null;
 }
 
 type Estado = "EN_CURSO" | "PAUSADA" | "FINALIZADA";

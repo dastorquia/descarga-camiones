@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aKilos, desdeKilos, efectoDeQuitar, errorEnAsignacion, errorEnTramos, propuestaResto, usaVariasBombas } from "./edicion";
+import { efectoDeQuitar, errorEnAsignacion, errorEnTramos, propuestaResto, usaVariasBombas } from "./edicion";
 
 describe("quitar un tramo cargado por error", () => {
   const t = (id: number, bombaId: number, fin: Date | null) => ({ id, bombaId, inicio: new Date(`2026-10-0${id}T10:00:00Z`), fin });
@@ -62,17 +62,6 @@ describe("editar tramos", () => {
 
   it("rechaza horas futuras", () => {
     expect(errorEnTramos([{ id: 1, inicio: h("16:00"), fin: h("18:00", "05") }], ahora)).toContain("futuro");
-  });
-});
-
-describe("kilos", () => {
-  it("convierte sin errores de redondeo", () => {
-    expect(aKilos("28.450")).toBe(28450);
-    expect(aKilos("0.001")).toBe(1);
-    expect(desdeKilos(28450)).toBe("28.450");
-    expect(desdeKilos(5)).toBe("0.005");
-    // 0,1 + 0,2 en kilos da exacto
-    expect(desdeKilos(aKilos("0.100") + aKilos("0.200"))).toBe("0.300");
   });
 });
 

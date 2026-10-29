@@ -4,9 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Carga y descarga de camiones",
   description: "Registro de carga y descarga de camiones en planta · Santa Fe Aceites",
-  applicationName: "Camiones",
+  applicationName: "CamionesSFA",
   // iPhone: al agregarla a la pantalla de inicio se abre como app, con su ícono.
-  appleWebApp: { capable: true, title: "Camiones", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "CamionesSFA", statusBarStyle: "default" },
   icons: { apple: "/apple-touch-icon.png" },
 };
 

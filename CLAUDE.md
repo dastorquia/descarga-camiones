@@ -13,7 +13,7 @@ App web de Santa Fe Aceites para registrar la carga y descarga de camiones en pl
   - hacer un commit;
   - **esperar la confirmación del usuario** antes de seguir.
 - **No agregar funciones que no estén en la especificación** sin consultar primero.
-- Las credenciales van solo en `.env`, que está excluido de git. Nunca se escriben en el código, en documentación ni en commits. `.env.example` lleva solo los nombres de las variables.
+- Las credenciales van solo en `.env`, que está excluido de git. Nunca se escriben en el código, en documentación ni en commits. Las variables necesarias están en `docs/OPERACION.md`.
 
 ## Stack
 
@@ -57,7 +57,7 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - Iniciar: EN_CURSO, con el primer tramo abierto.
   - Pausar: cierra el tramo con hora de fin manual. Pasa a PAUSADA.
   - Reanudar: abre un tramo nuevo con bomba, operario y hora de inicio manual. Pasa a EN_CURSO.
-  - Finalizar: cierra el tramo con hora de fin manual y pide toneladas. Pasa a FINALIZADA.
+  - Finalizar: cierra el tramo con hora de fin manual y pide los kilos. Pasa a FINALIZADA.
   - **Una descarga finalizada no se reabre.**
 - **Validaciones:**
   - la hoja de ruta es única, solo letras y números, y se guarda en mayúsculas;
@@ -69,7 +69,7 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - una bomba no puede tener tramos solapados ni dos tramos abiertos;
   - una descarga no puede tener dos tramos abiertos;
   - solo se eligen catálogos **activos**;
-  - no se puede finalizar sin toneladas;
+  - no se puede finalizar sin kilos;
   - el tanque ocupado **no** se valida.
 - **Cantidades (en KILOS desde el 29/10/2026):**
   - en la base: `Decimal(10,3)` en toneladas (columna `toneladas`), nunca `Float`; en pantalla, formularios, reportes y vistas: kilos enteros ("28.000 kg"), rendimiento en kg/h;
@@ -101,21 +101,21 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
 - **Fechas:**
   - se guardan en **UTC** y se muestran en `America/Argentina/Buenos_Aires`;
   - en los formularios, día y hora son campos separados, y el día de fin viene por defecto igual al de inicio.
-- **Números:** coma decimal en pantalla (6,75 h; 28,450 t).
+- **Números:** coma decimal en horas (6,75 h); kilos enteros con punto de miles (28.000 kg).
 - **Código:** nombres de dominio en español (descarga, tramo, bomba). Las reglas de negocio viven en el servidor y se prueban con funciones puras en Vitest.
   - Reglas puras: `src/modules/descargas/dominio/` (horas, toneladas, reglas). Acciones: `src/modules/descargas/acciones.ts`.
   - Fechas de Argentina: `src/shared/lib/fechas.ts` (`desdeDiaHora`, `aDiaHora`, `formatearFechaHora`).
   - Formularios cliente: usar `useFormulario` (`src/shared/ui/useFormulario.ts`), que no vacía los campos si hay error.
-  - Toneladas: se manejan como texto ("28.450") hasta Prisma; nunca `Number` para guardar.
-  - La advertencia de toneladas fuera de rango se confirma reenviando el mismo valor (`confirmado` = valor advertido).
+  - Cantidades: se guardan como texto en toneladas ("28.450") hasta Prisma; nunca `Number` para guardar. Para sumar, pasar a kilos enteros con `aKilosDesdeBase`.
+  - La advertencia de kilos fuera de rango se confirma reenviando el mismo valor (`confirmado` = valor advertido).
   - Un archivo `"use server"` solo exporta acciones async: las ayudas compartidas van en `src/modules/descargas/servidor.ts`.
-  - Edición (`edicion-acciones.ts`): al editar un tramo no cambia si está abierto o cerrado; las reglas están en `dominio/edicion.ts`. Las toneladas por tramo se suman en kilos enteros (`aKilos`).
+  - Edición (`edicion-acciones.ts`): al editar un tramo no cambia si está abierto o cerrado; las reglas están en `dominio/edicion.ts`. Los kilos por tramo se suman como enteros (`aKilosDesdeBase`).
   - Catálogos: duplicados se comparan sin distinguir mayúsculas (`existeOtro`). Se desactivan, nunca se borran.
 - **Pantallas de la Etapa 5:** `/supervisor/administracion` (catálogos, umbrales, PIN), `/colaborador/descargas/[id]/editar` (incluye quitar y agregar tramos) y `/colaborador/historial` (ambos perfiles; filtros en la dirección), y `/supervisor/auditoria` (registro de cambios; `?descargaId=` para una descarga).
   - Los registros de auditoría de tramos guardan `descargaId` en antes/después, para poder filtrar por descarga aunque el tramo se haya quitado. `describirCambios` (`src/shared/auditoria/describir.ts`) los traduce a texto.
 - **Reportes (Etapa 6):** `/supervisor/reportes` y `/api/supervisor/reportes` (`?formato=xlsx` o `?formato=csv&tabla=<id>`).
   - Cálculos puros en `src/modules/descargas/dominio/reportes.ts`; cada reporte es una `Tabla` genérica (`reportes/tabla.ts`) que sirve para pantalla, CSV y Excel (`exceljs`).
-  - Vistas SQL en la migración `20261028200000_vistas_reportes`, documentadas en `docs/VISTAS_SQL.md`. Si cambia una tabla que usan, actualizar las vistas en una migración nueva.
+  - Vistas SQL (en kilos) en la migración `20261029100000_vistas_en_kilos`, documentadas en `docs/VISTAS_SQL.md`. Si cambia una tabla que usan, actualizar las vistas en una migración nueva.
 - **PWA y despliegue (Etapa 7):** manifiesto en `src/app/manifest.ts`, íconos en `public/`. Vercel en `gru1` (`vercel.json`); `npm run vercel-build` aplica migraciones solo en producción. Operación y backups: `docs/OPERACION.md`.
 - **Pruebas de integración:** `npm run test:integracion` (contra la base real, en transacciones que se deshacen; crean sus propias bombas para no chocar con datos reales).
 - **Base de producción:** desde el despliegue, la base de Neon `main` es producción. Las migraciones se aplican solas al publicar en Vercel. **No correr migraciones, seeds ni datos de prueba contra producción:** usar una rama de Neon de desarrollo en el `.env` local.

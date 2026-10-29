@@ -10,10 +10,7 @@ App web de Santa Fe Aceites para registrar la carga y descarga de camiones en pl
 
 1. Instalá Node.js 22 o posterior.
 2. Corré `npm install`.
-3. Copiá `.env.example` como `.env` y completá:
-   - `DATABASE_URL`: la cadena de Neon con pooler (contiene `-pooler`);
-   - `DIRECT_URL`: la cadena de Neon sin pooler;
-   - `SESSION_SECRET`: un texto aleatorio largo.
+3. Creá un archivo `.env` con las tres variables que explica [docs/OPERACION.md](docs/OPERACION.md): `DATABASE_URL`, `DIRECT_URL` y `SESSION_SECRET`. Para tu computadora usá una rama de desarrollo de Neon, nunca la de producción.
 4. Corré `npm run db:deploy` para crear las tablas.
 5. Corré `npm run db:seed` para cargar el PIN inicial, los umbrales y los catálogos.
 6. Corré `npm run dev` y abrí http://localhost:3000.

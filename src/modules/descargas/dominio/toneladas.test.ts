@@ -22,6 +22,9 @@ describe("conversión con la base (toneladas con 3 decimales)", () => {
     expect(aKilosDesdeBase("28.45")).toBe(28450);
     expect(aKilosDesdeBase("0.001")).toBe(1);
     expect(aKilosDesdeBase(kilosATexto(1234567))).toBe(1234567);
+    expect(kilosATexto(5)).toBe("0.005");
+    // Sumar en kilos enteros evita errores de redondeo: 0,1 t + 0,2 t = 0,3 t exacto.
+    expect(kilosATexto(aKilosDesdeBase("0.100") + aKilosDesdeBase("0.200"))).toBe("0.300");
   });
 });
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 /** Deja solo letras y números, en mayúsculas y sin espacios. */
-export function soloAlfanumerico(texto: string): string {
+function soloAlfanumerico(texto: string): string {
   return texto.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 

@@ -1,5 +1,6 @@
 import { aDiaHora, desdeDiaHora } from "@/shared/lib/fechas";
-import { aKilos, usaVariasBombas } from "./edicion";
+import { usaVariasBombas } from "./edicion";
+import { aKilosDesdeBase } from "./toneladas";
 
 // Cálculos de los reportes (sección 7). Funciones puras: reciben las descargas ya leídas.
 // Las cantidades se suman en kilos enteros; las horas salen solo de tramos cerrados.
@@ -121,7 +122,7 @@ export function resumenDescarga(d: DescargaReporte): ResumenDescarga {
     horasBombeo,
     horasTotales,
     horasPausa: horasTotales === null ? null : horasTotales - horasBombeo,
-    rendimiento: d.toneladas && horasBombeo > 0 ? aKilos(d.toneladas) / horasBombeo : null,
+    rendimiento: d.toneladas && horasBombeo > 0 ? aKilosDesdeBase(d.toneladas) / horasBombeo : null,
     fin: fin === null ? null : new Date(fin),
     variasBombas: usaVariasBombas(d.tramos),
   };
@@ -163,11 +164,11 @@ export function toneladasPorBomba(descargas: readonly DescargaReporte[]): Tonela
   for (const d of descargas) {
     if (d.estado !== "FINALIZADA" || !d.toneladas || d.tramos.length === 0) continue;
     if (!usaVariasBombas(d.tramos)) {
-      sumar(d.tramos[0]!.bombaId, d.tipo, aKilos(d.toneladas), horasDe(d.tramos), false, d.id, contadas);
+      sumar(d.tramos[0]!.bombaId, d.tipo, aKilosDesdeBase(d.toneladas), horasDe(d.tramos), false, d.id, contadas);
       continue;
     }
     for (const t of d.tramos) {
-      if (t.toneladas && t.fin) sumar(t.bombaId, d.tipo, aKilos(t.toneladas), horasDe([t]), true, d.id, contadas);
+      if (t.toneladas && t.fin) sumar(t.bombaId, d.tipo, aKilosDesdeBase(t.toneladas), horasDe([t]), true, d.id, contadas);
     }
   }
   return [...suma.values()]
@@ -187,8 +188,8 @@ export function toneladasPor(
     if (d.estado !== "FINALIZADA" || !d.toneladas) continue;
     const id = d[campo];
     const actual = suma.get(id) ?? { id, descarga: 0, carga: 0 };
-    if (d.tipo === "CARGA") actual.carga += aKilos(d.toneladas);
-    else actual.descarga += aKilos(d.toneladas);
+    if (d.tipo === "CARGA") actual.carga += aKilosDesdeBase(d.toneladas);
+    else actual.descarga += aKilosDesdeBase(d.toneladas);
     suma.set(id, actual);
   }
   return [...suma.values()].sort((a, b) => b.descarga + b.carga - (a.descarga + a.carga));

@@ -33,8 +33,3 @@ export async function exigirPermiso(permiso: Permiso): Promise<DatosSesion> {
   return sesion;
 }
 
-export async function exigirSesion(): Promise<DatosSesion> {
-  const sesion = await obtenerSesion();
-  if (!sesion) redirect("/");
-  return sesion;
-}

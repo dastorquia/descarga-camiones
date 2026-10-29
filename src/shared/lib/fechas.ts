@@ -94,8 +94,3 @@ export function formatearDuracion(ms: number): string {
   return h === 0 ? `${m} min` : `${h} h ${String(m).padStart(2, "0")} min`;
 }
 
-/** "28/10" a partir de "2026-10-28" */
-export function formatearDiaCorto(dia: string): string {
-  const [, mes, d] = dia.split("-");
-  return `${d}/${mes}`;
-}

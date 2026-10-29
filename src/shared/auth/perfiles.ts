@@ -1,7 +1,7 @@
 // Perfiles y permisos: el único lugar donde se decide quién puede qué
 // (sección 9 de la especificación). Un módulo nuevo agrega acá sus permisos.
 
-export const PERFILES = ["COLABORADOR", "SUPERVISOR"] as const;
+const PERFILES = ["COLABORADOR", "SUPERVISOR"] as const;
 export type Perfil = (typeof PERFILES)[number];
 
 export function esPerfil(valor: unknown): valor is Perfil {

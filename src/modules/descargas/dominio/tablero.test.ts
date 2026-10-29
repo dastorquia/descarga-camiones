@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agruparPorSector, estadoBombas, SIN_SECTOR, tramoEnAlerta } from "./tablero";
+import { estadoBombas, sectorDe, SIN_SECTOR, tramoEnAlerta } from "./tablero";
 
 describe("alerta de tramo abierto", () => {
   const inicio = new Date("2026-10-28T00:00:00Z");
@@ -38,26 +38,11 @@ describe("estado de bombas", () => {
   });
 });
 
-const descarga = (id: number, ...sectores: (string | null)[]) => ({
-  id,
-  tramos: sectores.map((s) => ({ bomba: { descripcion: s } })),
-});
-
-describe("tablero por sector", () => {
-  it("agrupa por el sector de la bomba del último tramo", () => {
-    const grupos = agruparPorSector(
-      ["Descarga 1", "Descarga 2", "Descarga 3"],
-      [descarga(1, "Descarga 1"), descarga(2, "Descarga 1", "Descarga 3"), descarga(3, "Descarga 1")],
-    );
-    expect(grupos.map((g) => [g.sector, g.descargas.map((d) => d.id)])).toEqual([
-      ["Descarga 1", [1, 3]],
-      ["Descarga 2", []],
-      ["Descarga 3", [2]],
-    ]);
-  });
-
-  it("las bombas sin sector van a un grupo aparte, al final", () => {
-    const grupos = agruparPorSector(["Descarga 1"], [descarga(1, null)]);
-    expect(grupos.at(-1)).toEqual({ sector: SIN_SECTOR, descargas: [descarga(1, null)] });
+describe("sector de una descarga", () => {
+  it("es el de la bomba del último tramo; sin sector, va aparte", () => {
+    const tramos = (...sectores: (string | null)[]) => ({ tramos: sectores.map((s) => ({ bomba: { descripcion: s } })) });
+    expect(sectorDe(tramos("Descarga 1", "Descarga 3"))).toBe("Descarga 3");
+    expect(sectorDe(tramos(null))).toBe(SIN_SECTOR);
+    expect(sectorDe(tramos())).toBe(SIN_SECTOR);
   });
 });

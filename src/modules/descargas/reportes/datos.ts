@@ -11,7 +11,7 @@ import {
   type DescargaReporte,
   type Rango,
 } from "../dominio/reportes";
-import { aKilos } from "../dominio/edicion";
+import { aKilosDesdeBase } from "../dominio/toneladas";
 import type { FiltrosReporte } from "./filtros";
 import type { Tabla } from "./tabla";
 
@@ -147,7 +147,7 @@ export async function armarReportes(f: FiltrosReporte): Promise<Tabla[]> {
         nombre.proveedorId[d.proveedorId] ?? "",
         nombre.tanqueId[d.tanqueId] ?? "",
         [...new Set(d.tramos.map((t) => nombreBomba[t.bombaId]))].join(", "),
-        d.toneladas ? aKilos(d.toneladas) : null,
+        d.toneladas ? aKilosDesdeBase(d.toneladas) : null,
         r.horasBombeo,
         r.rendimiento,
         r.horasTotales,

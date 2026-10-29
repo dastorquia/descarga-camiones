@@ -84,8 +84,6 @@ export async function detalleDescarga(id: number) {
   return db.descarga.findUnique({ where: { id }, include: conDetalle });
 }
 
-export type DescargaConDetalle = NonNullable<Awaited<ReturnType<typeof detalleDescarga>>>;
-
 /**
  * Bombas que no se pueden elegir ahora, con el motivo para mostrar:
  * "en uso (HR123)" si tienen un tramo abierto, o "en mantenimiento".
