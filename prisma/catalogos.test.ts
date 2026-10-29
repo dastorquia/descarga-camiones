@@ -15,7 +15,7 @@ describe("catálogos del seed", () => {
   });
 
   it("asigna sector a cada bomba", () => {
-    expect(BOMBAS).toHaveLength(9);
-    for (const bomba of BOMBAS) expect(bomba.descripcion).toMatch(/^Descarga [1-4]$/);
+    expect(BOMBAS).toHaveLength(11);
+    for (const bomba of BOMBAS) expect(bomba.descripcion).toMatch(/^(Descarga [1-4]|Otro)$/);
   });
 });

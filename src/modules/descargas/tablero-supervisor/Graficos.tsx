@@ -134,9 +134,7 @@ export function GraficosDelMes({ datos }: { datos: GraficosMes }) {
             ],
           }))}
         />
-        <p className="text-xs text-slate-500">
-          Descargas finalizadas en el mes. Con varias bombas en un mismo camión, solo cuentan las cantidades asignadas por el Supervisor.
-        </p>
+        <p className="text-xs text-slate-500">Descargas finalizadas en el mes. Se reinicia el primer día de cada mes.</p>
       </Grafico>
 
       <Grafico
@@ -168,7 +166,7 @@ export function GraficosDelMes({ datos }: { datos: GraficosMes }) {
             segmentos: [{ nombre: "Horas", valor: b.horas, color: COLOR.descarga }],
           }))}
         />
-        <p className="text-xs text-slate-500">Solo tramos terminados. Se reinicia el primer día de cada mes.</p>
+        <p className="text-xs text-slate-500">Tramos finalizados en el mes. Se reinicia el primer día de cada mes.</p>
       </Grafico>
     </div>
   );

@@ -28,6 +28,8 @@ export const BOMBAS = [
   { codigo: "BEL013", descripcion: "Descarga 3" },
   { codigo: "BEL019", descripcion: "Descarga 4" },
   { codigo: "BCN201", descripcion: "Descarga 4" },
+  { codigo: "BEL101", descripcion: "Otro" },
+  { codigo: "BEL102", descripcion: "Otro" },
 ];
 
 function codigosTanque(desde: number, hasta: number): string[] {
