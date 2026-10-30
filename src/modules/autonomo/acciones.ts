@@ -11,16 +11,19 @@ import { esTarea } from "./tareas";
 
 export type EstadoAutonomo = { error?: string };
 
-/** Colaborador o Supervisor: registra una tarea de mantenimiento autónomo hecha. */
+/** Colaborador o Supervisor: registra las tareas de mantenimiento autónomo hechas (una fila por tarea). */
 export async function registrarTarea(_previo: EstadoAutonomo, formulario: FormData): Promise<EstadoAutonomo> {
   const { perfil } = await exigirPermiso("descargas.operar");
   try {
     const bombaId = Number(formulario.get("bombaId"));
     const operarioId = Number(formulario.get("operarioId"));
-    const tarea = formulario.get("tarea");
+    const tareas = formulario.getAll("tarea");
+    const observaciones = String(formulario.get("observaciones") ?? "").trim() || null;
     if (!bombaId) throw new ErrorNegocio("Elegí la bomba.");
-    if (!esTarea(tarea)) throw new ErrorNegocio("Elegí la tarea.");
+    if (tareas.length === 0) throw new ErrorNegocio("Marcá al menos una tarea.");
+    if (!tareas.every(esTarea) || new Set(tareas).size !== tareas.length) throw new ErrorNegocio("Revisá las tareas marcadas.");
     if (!operarioId) throw new ErrorNegocio("Elegí el colaborador.");
+    if (observaciones && observaciones.length > 200) throw new ErrorNegocio("Las observaciones pueden tener hasta 200 caracteres.");
     const fecha = instante(String(formulario.get("dia") ?? ""), String(formulario.get("hora") ?? ""));
     if (esFuturo(fecha, new Date())) throw new ErrorNegocio("La hora no puede ser futura.");
 
@@ -29,14 +32,16 @@ export async function registrarTarea(_previo: EstadoAutonomo, formulario: FormDa
       if (!(await tx.bombaAutonomo.findUnique({ where: { bombaId } }))) {
         throw new ErrorNegocio("Esa bomba no tiene mantenimiento autónomo.");
       }
-      const t = await tx.tareaAutonoma.create({ data: { bombaId, tarea, operarioId, fecha } });
-      await registrarAuditoria(tx, {
-        perfil,
-        entidad: "TareaAutonoma",
-        entidadId: t.id,
-        accion: "CREAR",
-        despues: { bombaId, tarea, operarioId, fecha: fecha.toISOString() },
-      });
+      for (const tarea of tareas) {
+        const t = await tx.tareaAutonoma.create({ data: { bombaId, tarea, operarioId, fecha, observaciones } });
+        await registrarAuditoria(tx, {
+          perfil,
+          entidad: "TareaAutonoma",
+          entidadId: t.id,
+          accion: "CREAR",
+          despues: { bombaId, tarea, operarioId, fecha: fecha.toISOString(), observaciones },
+        });
+      }
     });
   } catch (error) {
     return { error: mensajeDeError(error) };

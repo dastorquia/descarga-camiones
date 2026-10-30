@@ -24,8 +24,14 @@ export function FormularioMovimiento({ tanques, bombas, operarios }: Props) {
       <Campo etiqueta="Tanque de origen">
         <Desplegable nombre="tanqueOrigenId" opciones={opcionesTanque} />
       </Campo>
+      <Campo etiqueta="Bomba de carga">
+        <Desplegable nombre="bombaCargaId" opciones={opcionesBomba} />
+      </Campo>
       <Campo etiqueta="Tanque de destino">
         <Desplegable nombre="tanqueDestinoId" opciones={opcionesTanque} />
+      </Campo>
+      <Campo etiqueta="Bomba de descarga">
+        <Desplegable nombre="bombaDescargaId" opciones={opcionesBomba} />
       </Campo>
       <Campo etiqueta="Kilos" ayuda="Solo números, sin decimales. Por ejemplo 28000.">
         <Texto name="kilos" inputMode="numeric" autoComplete="off" placeholder="28000" required />
@@ -36,12 +42,6 @@ export function FormularioMovimiento({ tanques, bombas, operarios }: Props) {
       <DiaHora etiqueta="Inicio" prefijo="inicio" dia={ahora.dia} hora="" />
       {/* El día de fin viene igual al de inicio: normalmente termina el mismo día. */}
       <DiaHora etiqueta="Fin" prefijo="fin" dia={ahora.dia} hora={ahora.hora} />
-      <Campo etiqueta="Bomba de carga">
-        <Desplegable nombre="bombaCargaId" opciones={opcionesBomba} />
-      </Campo>
-      <Campo etiqueta="Bomba de descarga">
-        <Desplegable nombre="bombaDescargaId" opciones={opcionesBomba} />
-      </Campo>
       <Campo etiqueta="Colaborador">
         <Desplegable nombre="operarioId" opciones={operarios.map((o) => ({ valor: o.id, texto: o.nombre }))} />
       </Campo>

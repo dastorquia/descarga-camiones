@@ -115,6 +115,7 @@ Los módulos nuevos se agregan con migraciones **aditivas**, sin modificar las t
   - Los registros de auditoría de tramos guardan `descargaId` en antes/después, para poder filtrar por descarga aunque el tramo se haya quitado. `describirCambios` (`src/shared/auditoria/describir.ts`) los traduce a texto.
 - **Reportes (Etapa 6):** `/supervisor/reportes` y `/api/supervisor/reportes` (`?formato=xlsx` o `?formato=csv&tabla=<id>`).
   - Cálculos puros en `src/modules/descargas/dominio/reportes.ts`; cada reporte es una `Tabla` genérica (`reportes/tabla.ts`) que sirve para pantalla, CSV y Excel (`exceljs`).
+  - Descargas a Excel/CSV: `respuestaExportacion` (`reportes/respuesta.ts`) con botones `BotonExcel`/`BotonCsv` (`src/shared/ui/Exportar.tsx`). Se usa en Reportes, `/colaborador/historial/exportar` (mismos filtros, todas las páginas) y `/supervisor/autonomo/exportar`.
   - Vistas SQL (en kilos) en la migración `20261029100000_vistas_en_kilos`, documentadas en `docs/VISTAS_SQL.md`. Si cambia una tabla que usan, actualizar las vistas en una migración nueva.
 - **PWA y despliegue (Etapa 7):** manifiesto en `src/app/manifest.ts`, íconos en `public/`. Vercel en `gru1` (`vercel.json`); `npm run vercel-build` aplica migraciones solo en producción. Operación y backups: `docs/OPERACION.md`.
 - **Pruebas de integración:** `npm run test:integracion` (contra la base real, en transacciones que se deshacen; crean sus propias bombas para no chocar con datos reales).

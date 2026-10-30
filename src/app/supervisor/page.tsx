@@ -12,9 +12,6 @@ export default async function InicioSupervisor() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6">
       <nav className="flex flex-wrap gap-2">
-        <Link href="/colaborador" className={enlace}>
-          Descargas por sector
-        </Link>
         <Link href="/colaborador/nueva" className={enlace}>
           + Nueva descarga
         </Link>

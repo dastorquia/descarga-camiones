@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Opcion } from "@/shared/catalogos/datos";
 import { aDiaHora } from "@/shared/lib/fechas";
-import { Campo, DiaHora, Desplegable } from "@/shared/ui/campos";
+import { AreaTexto, Campo, DiaHora, Desplegable } from "@/shared/ui/campos";
 import { botonPrincipal, mensajeError } from "@/shared/ui/estilos";
 import { useFormulario } from "@/shared/ui/useFormulario";
 import { registrarTarea, type EstadoAutonomo } from "./acciones";
@@ -21,20 +21,29 @@ export function FormularioTarea({ bombas, operarios }: { bombas: { id: number; e
       <Campo etiqueta="Bomba">
         <Desplegable nombre="bombaId" opciones={bombas.map((b) => ({ valor: b.id, texto: b.etiqueta }))} />
       </Campo>
-      <Campo etiqueta="Tarea">
-        <Desplegable nombre="tarea" opciones={LISTA_TAREAS.map((t) => ({ valor: t, texto: TAREAS[t] }))} />
-      </Campo>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-base font-semibold">Tareas hechas</legend>
+        {LISTA_TAREAS.map((t) => (
+          <label key={t} className="flex min-h-14 items-center gap-3 rounded-xl border-2 border-slate-300 bg-white px-3 has-[:checked]:border-blue-700 has-[:checked]:bg-blue-50">
+            <input type="checkbox" name="tarea" value={t} className="size-6 accent-blue-700" />
+            <span className="text-base">{TAREAS[t]}</span>
+          </label>
+        ))}
+      </fieldset>
       <Campo etiqueta="Colaborador">
         <Desplegable nombre="operarioId" opciones={operarios.map((o) => ({ valor: o.id, texto: o.nombre }))} />
       </Campo>
       <DiaHora etiqueta="Día y hora" dia={ahora.dia} hora={ahora.hora} />
+      <Campo etiqueta="Observaciones (opcional)" ayuda="Un comentario breve, hasta 200 caracteres.">
+        <AreaTexto name="observaciones" maxLength={200} />
+      </Campo>
       {estado.error && (
         <p role="alert" className={mensajeError}>
           {estado.error}
         </p>
       )}
       <button type="submit" className={botonPrincipal} disabled={enviando}>
-        {enviando ? "Guardando…" : "Registrar tarea"}
+        {enviando ? "Guardando…" : "Registrar"}
       </button>
     </form>
   );

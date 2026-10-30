@@ -29,12 +29,12 @@ export async function ultimasTareas() {
   });
 }
 
-/** Historial de tareas, las más recientes primero. */
-export async function historialTareas(bombaId: number | null, limite = 100) {
+/** Historial de tareas, las más recientes primero. `limite` null = todas (para exportar). */
+export async function historialTareas(bombaId: number | null, limite: number | null = 100) {
   return db.tareaAutonoma.findMany({
     where: bombaId ? { bombaId } : {},
     orderBy: { fecha: "desc" },
-    take: limite,
+    ...(limite ? { take: limite } : {}),
     include: { bomba: { select: { codigo: true, descripcion: true } }, operario: { select: { nombre: true } } },
   });
 }

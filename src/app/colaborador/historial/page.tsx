@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { EtiquetaEstado, EtiquetaTipo } from "@/modules/descargas/componentes/EtiquetaEstado";
 import { buscarHistorial } from "@/modules/descargas/datos";
-import { enlaceDePagina, leerFiltros, type Filtros } from "@/modules/descargas/dominio/filtros";
+import { consultaDeFiltros, enlaceDePagina, leerFiltros, type Filtros } from "@/modules/descargas/dominio/filtros";
 import { formatearHoras, horasBomba } from "@/modules/descargas/dominio/horas";
 import { formatearKilos } from "@/modules/descargas/dominio/toneladas";
 import { inicioDe, puede } from "@/shared/auth/perfiles";
@@ -11,6 +11,8 @@ import { catalogosActivos } from "@/shared/catalogos/datos";
 import { etiquetaBomba } from "@/shared/catalogos/sector";
 import { formatearFechaHora } from "@/shared/lib/fechas";
 import { Encabezado } from "@/shared/ui/Encabezado";
+import { BotonCsv, BotonExcel } from "@/shared/ui/Exportar";
+import { Celda, TablaDatos } from "@/shared/ui/TablaDatos";
 
 const control = "min-h-12 w-full rounded-lg border-2 border-slate-300 bg-white px-3 text-base focus:border-blue-700 focus:outline-none";
 
@@ -20,11 +22,12 @@ export default async function Historial({ searchParams }: PageProps<"/colaborado
   const filtros = leerFiltros(await searchParams);
   const [resultado, catalogos] = await Promise.all([buscarHistorial(filtros), catalogosActivos()]);
   const puedeEditarFinalizadas = puede(sesion.perfil, "descargas.editarFinalizadas");
+  const consulta = consultaDeFiltros(filtros).toString();
 
   return (
     <>
       <Encabezado perfil={sesion.perfil} />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-4 py-6">
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-6">
         <div>
           <Link href={inicioDe(sesion.perfil)} className="inline-flex min-h-11 items-center text-base font-semibold text-blue-700">
             ← Volver
@@ -71,47 +74,59 @@ export default async function Historial({ searchParams }: PageProps<"/colaborado
           </div>
         </form>
 
-        <p className="text-slate-600">
-          {resultado.total === 1 ? "1 resultado" : `${resultado.total} resultados`}
-          {resultado.paginas > 1 && ` · página ${filtros.pagina} de ${resultado.paginas}`}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="mr-auto text-slate-600">
+            {resultado.total === 1 ? "1 resultado" : `${resultado.total} resultados`}
+            {resultado.paginas > 1 && ` · página ${filtros.pagina} de ${resultado.paginas}`}
+          </p>
+          {resultado.total > 0 && (
+            <>
+              <BotonExcel href={`/colaborador/historial/exportar?formato=xlsx&${consulta}`} />
+              <BotonCsv href={`/colaborador/historial/exportar?formato=csv&${consulta}`} />
+            </>
+          )}
+        </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <TablaDatos
+          columnas={["Hoja de ruta", "Tipo", "Estado", "Patente", "Inicio", "Producto", "Proveedor o cliente", "Tanque", "Bombas", "Horas", "Kilos", ""]}
+          vacio={resultado.total === 0 ? "No hay descargas con esos filtros." : undefined}
+        >
           {resultado.descargas.map((d) => {
             const inicio = d.tramos[0]?.inicio;
             const bombas = [...new Set(d.tramos.map((t) => etiquetaBomba(t.bomba.codigo, t.bomba.descripcion)))];
             const editable = d.estado !== "FINALIZADA" || puedeEditarFinalizadas;
             return (
-              <div key={d.id} className="flex flex-col gap-1 rounded-xl border-2 border-slate-200 bg-white p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link href={`/colaborador/descargas/${d.id}`} className="mr-auto text-lg font-bold hover:underline">
+              <tr key={d.id}>
+                <Celda className="font-bold">
+                  <Link href={`/colaborador/descargas/${d.id}`} className="text-blue-700 hover:underline">
                     {d.hojaDeRuta}
                   </Link>
+                </Celda>
+                <Celda>
                   <EtiquetaTipo tipo={d.tipo} />
+                </Celda>
+                <Celda>
                   <EtiquetaEstado estado={d.estado} />
-                </div>
-                {inicio && <span className="text-sm text-slate-600">Inicio {formatearFechaHora(inicio)}</span>}
-                <span>
-                  {d.producto.nombre} · {d.proveedor.nombre} · {d.tanque.codigo}
-                </span>
-                <span className="text-sm">Bomba {bombas.join(", ")}</span>
-                <span className="text-sm">
-                  {formatearHoras(horasBomba(d.tramos))} de bomba · {formatearKilos(d.toneladas)}
-                </span>
-                <div className="mt-1 flex gap-3">
-                  <Link href={`/colaborador/descargas/${d.id}`} className="font-semibold text-blue-700 hover:underline">
-                    Ver
-                  </Link>
+                </Celda>
+                <Celda>{d.patente ?? "—"}</Celda>
+                <Celda>{inicio ? formatearFechaHora(inicio) : "—"}</Celda>
+                <Celda>{d.producto.nombre}</Celda>
+                <Celda>{d.proveedor.nombre}</Celda>
+                <Celda>{d.tanque.codigo}</Celda>
+                <Celda>{bombas.join(", ")}</Celda>
+                <Celda className="text-right tabular-nums">{formatearHoras(horasBomba(d.tramos))}</Celda>
+                <Celda className="text-right tabular-nums">{formatearKilos(d.toneladas)}</Celda>
+                <Celda>
                   {editable && (
                     <Link href={`/colaborador/descargas/${d.id}/editar`} className="font-semibold text-blue-700 hover:underline">
                       {d.estado === "FINALIZADA" ? "Corregir" : "Editar"}
                     </Link>
                   )}
-                </div>
-              </div>
+                </Celda>
+              </tr>
             );
           })}
-        </div>
+        </TablaDatos>
 
         {resultado.paginas > 1 && <Paginas filtros={filtros} paginas={resultado.paginas} />}
       </main>

@@ -195,6 +195,8 @@ model TareaAutonoma {
   tarea      TipoTareaAutonoma
   operarioId Int
   fecha      DateTime
+  // Agregado el 30/10/2026: comentario breve (hasta 200 caracteres).
+  observaciones String?
   creadoEn   DateTime          @default(now())
 
   bomba    Bomba    @relation(fields: [bombaId], references: [id])

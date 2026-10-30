@@ -49,24 +49,7 @@ export const POR_PAGINA = 25;
  * bombeo en ese período (algún tramo empezó entre "desde" y "hasta", inclusive).
  */
 export async function buscarHistorial(f: Filtros) {
-  const desde = f.desde ? desdeDiaHora(f.desde, "00:00") : null;
-  const hastaDia = f.hasta ? desdeDiaHora(f.hasta, "00:00") : null;
-  const hasta = hastaDia ? new Date(hastaDia.getTime() + 24 * 3_600_000) : null;
-
-  const tramo: Prisma.TramoBombeoWhereInput = {
-    ...(f.bombaId ? { bombaId: f.bombaId } : {}),
-    ...(desde || hasta ? { inicio: { ...(desde ? { gte: desde } : {}), ...(hasta ? { lt: hasta } : {}) } } : {}),
-  };
-  const where: Prisma.DescargaWhereInput = {
-    ...(f.estado ? { estado: f.estado } : {}),
-    ...(f.tipo ? { tipo: f.tipo } : {}),
-    ...(f.productoId ? { productoId: f.productoId } : {}),
-    ...(f.proveedorId ? { proveedorId: f.proveedorId } : {}),
-    ...(f.tanqueId ? { tanqueId: f.tanqueId } : {}),
-    ...(f.texto ? { OR: [{ hojaDeRuta: { contains: f.texto } }, { patente: { contains: f.texto } }] } : {}),
-    ...(Object.keys(tramo).length ? { tramos: { some: tramo } } : {}),
-  };
-
+  const where = condicionesHistorial(f);
   const [total, descargas] = await Promise.all([
     db.descarga.count({ where }),
     db.descarga.findMany({
@@ -78,6 +61,31 @@ export async function buscarHistorial(f: Filtros) {
     }),
   ]);
   return { total, descargas, paginas: Math.max(1, Math.ceil(total / POR_PAGINA)) };
+}
+
+/** Todas las descargas que cumplen los filtros (sin páginas), para exportar. */
+export async function historialParaExportar(f: Filtros, limite = 10_000) {
+  return db.descarga.findMany({ where: condicionesHistorial(f), orderBy: { creadaEn: "desc" }, take: limite, include: conDetalle });
+}
+
+function condicionesHistorial(f: Filtros): Prisma.DescargaWhereInput {
+  const desde = f.desde ? desdeDiaHora(f.desde, "00:00") : null;
+  const hastaDia = f.hasta ? desdeDiaHora(f.hasta, "00:00") : null;
+  const hasta = hastaDia ? new Date(hastaDia.getTime() + 24 * 3_600_000) : null;
+
+  const tramo: Prisma.TramoBombeoWhereInput = {
+    ...(f.bombaId ? { bombaId: f.bombaId } : {}),
+    ...(desde || hasta ? { inicio: { ...(desde ? { gte: desde } : {}), ...(hasta ? { lt: hasta } : {}) } } : {}),
+  };
+  return {
+    ...(f.estado ? { estado: f.estado } : {}),
+    ...(f.tipo ? { tipo: f.tipo } : {}),
+    ...(f.productoId ? { productoId: f.productoId } : {}),
+    ...(f.proveedorId ? { proveedorId: f.proveedorId } : {}),
+    ...(f.tanqueId ? { tanqueId: f.tanqueId } : {}),
+    ...(f.texto ? { OR: [{ hojaDeRuta: { contains: f.texto } }, { patente: { contains: f.texto } }] } : {}),
+    ...(Object.keys(tramo).length ? { tramos: { some: tramo } } : {}),
+  };
 }
 
 export async function detalleDescarga(id: number) {

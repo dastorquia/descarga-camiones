@@ -38,9 +38,15 @@ export function leerFiltros(p: Parametros): Filtros {
 }
 
 /** Dirección del Historial con los mismos filtros y otra página. */
-export function enlaceDePagina(filtros: Filtros, pagina: number): string {
+/** Los filtros como parámetros de dirección, sin la página. */
+export function consultaDeFiltros(filtros: Filtros): URLSearchParams {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(filtros)) if (k !== "pagina" && v !== null) p.set(k, String(v));
+  return p;
+}
+
+export function enlaceDePagina(filtros: Filtros, pagina: number): string {
+  const p = consultaDeFiltros(filtros);
   if (pagina > 1) p.set("pagina", String(pagina));
   const q = p.toString();
   return `/colaborador/historial${q ? `?${q}` : ""}`;

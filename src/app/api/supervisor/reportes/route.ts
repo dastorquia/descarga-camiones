@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { armarReportes } from "@/modules/descargas/reportes/datos";
-import { aExcel } from "@/modules/descargas/reportes/excel";
 import { leerFiltrosReporte } from "@/modules/descargas/reportes/filtros";
-import { aCsv } from "@/modules/descargas/reportes/tabla";
+import { respuestaExportacion } from "@/modules/descargas/reportes/respuesta";
 import { puede } from "@/shared/auth/perfiles";
 import { obtenerSesion } from "@/shared/auth/sesion";
 
@@ -17,26 +16,11 @@ export async function GET(pedido: NextRequest) {
   const filtros = leerFiltrosReporte(parametros, new Date());
   const tablas = await armarReportes(filtros);
   const sufijo = `${filtros.desde}_a_${filtros.hasta}${filtros.tipo ? `_${filtros.tipo.toLowerCase()}` : ""}`;
+  const tipo = filtros.tipo === "CARGA" ? "Solo cargas" : filtros.tipo === "DESCARGA" ? "Solo descargas" : "Descargas y cargas";
 
   if (parametros.formato === "csv") {
-    const tabla = tablas.find((t) => t.id === parametros.tabla);
-    if (!tabla) return NextResponse.json({ error: "Reporte inexistente" }, { status: 404 });
-    return new NextResponse(aCsv(tabla), {
-      headers: {
-        "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${tabla.id}_${sufijo}.csv"`,
-        "Cache-Control": "no-store",
-      },
-    });
+    if (!tablas.some((t) => t.id === parametros.tabla)) return NextResponse.json({ error: "Reporte inexistente" }, { status: 404 });
+    return respuestaExportacion(tablas, { formato: "csv", tablaId: parametros.tabla, nombre: sufijo, encabezado: "" });
   }
-
-  const tipo = filtros.tipo === "CARGA" ? "Solo cargas" : filtros.tipo === "DESCARGA" ? "Solo descargas" : "Descargas y cargas";
-  const archivo = await aExcel(tablas, `Período: ${filtros.desde} a ${filtros.hasta} · ${tipo}`);
-  return new NextResponse(new Uint8Array(archivo), {
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="reportes_${sufijo}.xlsx"`,
-      "Cache-Control": "no-store",
-    },
-  });
+  return respuestaExportacion(tablas, { formato: "xlsx", nombre: `reportes_${sufijo}`, encabezado: `Período: ${filtros.desde} a ${filtros.hasta} · ${tipo}` });
 }

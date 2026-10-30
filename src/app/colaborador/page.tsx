@@ -44,7 +44,7 @@ export default async function TableroColaborador({ searchParams }: PageProps<"/c
             + Nuevo movimiento
           </Link>
           <Link href="/colaborador/autonomo/nuevo" className={`${botonSecundario} md:max-w-64`}>
-            + Mantenimiento autónomo
+            + Mant. autónomo
           </Link>
           <Link href="/colaborador/historial" className={`${botonSecundario} md:max-w-48`}>
             Historial
@@ -64,7 +64,7 @@ export default async function TableroColaborador({ searchParams }: PageProps<"/c
         </div>
 
         {registrado === "movimiento" && <p className={mensajeExito}>Movimiento interno registrado.</p>}
-        {registrado === "autonomo" && <p className={mensajeExito}>Tarea de mantenimiento autónomo registrada.</p>}
+        {registrado === "autonomo" && <p className={mensajeExito}>Mantenimiento autónomo registrado.</p>}
 
         <TarjetasDescargas datos={datos} />
 
